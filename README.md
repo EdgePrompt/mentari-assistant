@@ -6,11 +6,11 @@
 
 **Ekstensi browser untuk memantau forum, diskusi, kuis, dan presensi di portal MENTARI UNPAM.**
 
-[![Version](https://img.shields.io/badge/versi-1.0.0-f97316?style=for-the-badge)](https://github.com/EdgePrompt/mentari-assistant/releases/latest)
-[![Releases](https://img.shields.io/badge/download-Release%20v1.0.0-8b5cf6?style=for-the-badge&logo=github&logoColor=white)](https://github.com/EdgePrompt/mentari-assistant/releases/latest)
+[![Version](https://img.shields.io/badge/versi-1.1.0-f97316?style=for-the-badge)](https://github.com/EdgePrompt/mentari-assistant/releases/latest)
+[![Releases](https://img.shields.io/badge/download-Release%20v1.1.0-22c55e?style=for-the-badge&logo=github&logoColor=white)](https://github.com/EdgePrompt/mentari-assistant/releases/latest)
 [![License](https://img.shields.io/badge/license-MIT-6b7280?style=for-the-badge)](LICENSE)
 
-[Fitur Utama](#-fitur-utama) • [Cara Pasang](#-cara-pasang) • [Pasang API Key Gemini](#-pasang-api-key-gemini) • [Lisensi](#-lisensi--atribusi)
+[Fitur Utama](#-fitur-utama) • [Perangkat & Browser](#-dukungan-perangkat--browser) • [Cara Pasang](#-cara-pasang) • [Pasang API Key Gemini](#-pasang-api-key-gemini) • [Lisensi](#-lisensi--atribusi)
 
 </div>
 
@@ -20,23 +20,38 @@
 
 | Fitur | Kegunaan |
 | :--- | :--- |
-| **Daftar Forum & Notifikasi** | Menampilkan forum diskusi yang belum dikerjakan serta balasan terbaru dari dosen dalam satu panel tanpa harus membuka mata kuliah satu per satu. |
-| **Bantu Kuis & Diskusi (AI)** | Membantu memahami soal kuis atau menyusun draf tanggapan forum memakai model Google Gemini dengan API Key milik sendiri. |
+| **Daftar Forum & Notifikasi** | Menampilkan forum diskusi yang belum dikerjakan, membalas forum langsung dari panel, serta memantau balasan terbaru dari dosen tanpa harus membuka mata kuliah satu per satu. |
+| **Bantu Kuis & Diskusi (AI)** | Membantu menjawab soal kuis otomatis maupun menyusun tanggapan forum memakai model Google Gemini dengan API Key milik sendiri. |
 | **Survei & Kuisioner Cepat** | Mempercepat pengisian evaluasi dosen dan survei di MENTARI maupun MyUNPAM. |
-| **Pintasan Presensi** | Akses cepat ke halaman presensi mahasiswa di MyUNPAM langsung dari panel asisten. |
+| **Pintasan Presensi** | Akses cepat dan tampilan presensi mahasiswa di MyUNPAM langsung dari panel asisten. |
+
+---
+
+## 📱 Dukungan Perangkat & Browser
+
+| Perangkat | Browser yang Didukung | Status |
+| :--- | :--- | :--- |
+| **Desktop** (Windows / macOS / Linux) | Google Chrome, Microsoft Edge, Brave, Opera, Arc, Vivaldi | Didukung penuh |
+| **Android** | **Mises Browser**, **Lemur Browser**, **Quetta Browser**, **Kiwi Browser** | Didukung penuh (tampilan responsif) |
+| **iPhone / iPad (iOS)** | **Mises Browser** | Didukung (tampilan responsif) |
+| Android / iOS | Google Chrome Mobile & Safari | Tidak didukung (tidak mendukung pasang ekstensi `.zip`) |
 
 ---
 
 ## 🚀 Cara Pasang
 
-1. Unduh file **`mentari-assistant-v1.0.0.zip`** di halaman **[GitHub Releases](https://github.com/EdgePrompt/mentari-assistant/releases/latest)**, lalu ekstrak ke satu folder khusus.
-2. Buka browser berbasis Chromium (Chrome, Edge, atau Brave) dan kunjungi:
-   ```text
-   chrome://extensions/
-   ```
+### Desktop (Chrome / Edge / Brave / Chromium)
+1. Unduh file **`mentari-assistant-v1.1.0.zip`** di halaman **[GitHub Releases](https://github.com/EdgePrompt/mentari-assistant/releases/latest)**, lalu ekstrak ke satu folder khusus.
+2. Buka halaman ekstensi browser (`chrome://extensions/` atau `edge://extensions/`).
 3. Aktifkan **Developer mode** di pojok kanan atas.
 4. Klik **Load unpacked**, lalu pilih folder hasil ekstrak yang berisi file `manifest.json`.
 5. Buka [mentari.unpam.ac.id](https://mentari.unpam.ac.id/) — ikon **Mentari Assistant** akan muncul di bilah atas halaman dan toolbar browser.
+
+### HP / Tablet (Android & iOS)
+1. Pasang salah satu browser mobile yang mendukung ekstensi (**Mises Browser**, **Lemur Browser**, **Quetta**, atau **Kiwi Browser** untuk Android; **Mises Browser** untuk iOS).
+2. Unduh file **`mentari-assistant-v1.1.0.zip`** dari halaman **[GitHub Releases](https://github.com/EdgePrompt/mentari-assistant/releases/latest)**.
+3. Buka menu **Extensions** di browser tersebut, aktifkan **Developer mode**, lalu pilih **Load zip / `.zip` file** (atau ekstrak terlebih dahulu lalu pilih folder `manifest.json` sesuai browser yang dipakai).
+4. Login ke [mentari.unpam.ac.id](https://mentari.unpam.ac.id/) dan ketuk ikon **Mentari Assistant** di bar atas.
 
 ---
 

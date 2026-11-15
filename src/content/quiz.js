@@ -338,7 +338,8 @@
 
     createPopup() {
       const wrap = document.createElement("div");
-      wrap.style = "position:fixed;top:20px;right:20px;width:420px;max-height:85vh;background:#1e1e1e;border:1px solid #333;border-radius:10px;box-shadow:0 8px 32px rgba(0,0,0,0.6);z-index:99998;display:flex;flex-direction:column;overflow:hidden;font-family:system-ui,sans-serif;";
+      wrap.id = "auto-quiz-popup";
+      wrap.style = "position:fixed;top:20px;right:20px;width:420px;max-width:calc(100vw - 20px);box-sizing:border-box;max-height:85vh;background:#1e1e1e;border:1px solid #333;border-radius:10px;box-shadow:0 8px 32px rgba(0,0,0,0.6);z-index:99998;display:flex;flex-direction:column;overflow:hidden;font-family:system-ui,sans-serif;";
       const header = document.createElement("div");
       header.style = "padding:12px 16px;background:#2a2a2a;border-bottom:1px solid #333;display:flex;justify-content:space-between;align-items:center;cursor:move;user-select:none;";
       header.innerHTML = `
@@ -354,6 +355,16 @@
       style.textContent = `
         #toggle-popup:hover, #close-popup:hover { color: #fff !important; }
         .q-tooltip { background: #1e1e1e !important; border-color: #444 !important; }
+        @media (max-width: 600px) {
+          #auto-quiz-popup {
+            top: 56px !important;
+            right: 10px !important;
+            left: 10px !important;
+            width: auto !important;
+            max-width: calc(100vw - 20px) !important;
+            max-height: 80dvh !important;
+          }
+        }
         ::-webkit-scrollbar { width: 4px; height: 4px; }
         ::-webkit-scrollbar-track { background: transparent; }
         ::-webkit-scrollbar-thumb { background: rgba(76,175,80,0.2); border-radius: 10px; }
