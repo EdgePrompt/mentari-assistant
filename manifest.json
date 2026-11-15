@@ -1,0 +1,71 @@
+{
+  "manifest_version": 3,
+  "name": "Mentari Assistant",
+  "version": "1.0.0",
+  "description": "Asisten untuk pantau forum diskusi, bantu pengerjaan kuis, kuisioner, dan akses cepat di MENTARI UNPAM.",
+  "permissions": ["scripting", "activeTab"],
+  "host_permissions": [
+    "https://mentari.unpam.ac.id/*",
+    "https://generativelanguage.googleapis.com/*"
+  ],
+  "action": {
+    "default_popup": "src/popup/popup.html",
+    "default_title": "Mentari Assistant",
+    "default_icon": {
+      "16": "src/assets/icon-16.png",
+      "32": "src/assets/icon-32.png",
+      "48": "src/assets/icon-48.png",
+      "128": "src/assets/icon-128.png"
+    }
+  },
+  "content_scripts": [
+    {
+      "matches": ["https://mentari.unpam.ac.id/*"],
+      "exclude_matches": ["https://mentari.unpam.ac.id/login"],
+      "js": ["src/content/apiKeyManager.js", "src/content/content.js", "src/content/gemini.js"]
+    },
+    {
+      "matches": [
+        "https://mentari.unpam.ac.id/u-courses/*/exam/*",
+        "https://mentari.unpam.ac.id/u-courses/*/quiz/*"
+      ],
+      "js": ["src/content/quiz.js"]
+    },
+    {
+      "matches": [
+        "https://mentari.unpam.ac.id/u-courses/*/kuesioner/*",
+        "https://mentari.unpam.ac.id/u-courses/*"
+      ],
+      "js": ["src/content/kuisioner.js"]
+    },
+    {
+      "matches": [
+        "https://mentari.unpam.ac.id/u-courses/*/forum/*",
+        "https://mentari.unpam.ac.id/u-courses/*"
+      ],
+      "js": ["src/content/discus.js"]
+    },
+    {
+      "matches": ["https://my.unpam.ac.id/*"],
+      "js": ["src/content/presensi.js", "src/content/QuickSurvey.js"]
+    }
+  ],
+  "web_accessible_resources": [
+    {
+      "resources": [
+        "src/content/token.js",
+        "src/content/apiKeyManager.js",
+        "src/content/guidebook.js",
+        "src/assets/icon-32.png",
+        "src/assets/icon-128.png"
+      ],
+      "matches": ["https://mentari.unpam.ac.id/*"]
+    }
+  ],
+  "icons": {
+    "16": "src/assets/icon-16.png",
+    "32": "src/assets/icon-32.png",
+    "48": "src/assets/icon-48.png",
+    "128": "src/assets/icon-128.png"
+  }
+}
