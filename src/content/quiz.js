@@ -47,6 +47,16 @@
   const Utils = {
     delay: (ms) => new Promise((r) => setTimeout(r, ms)),
 
+    isAutoFinishEnabled() {
+      try {
+        const raw = localStorage.getItem("mentari_auto_finish_quiz");
+        if (raw === null) return true;
+        return JSON.parse(raw) !== false;
+      } catch (_) {
+        return localStorage.getItem("mentari_auto_finish_quiz") !== "false";
+      }
+    },
+
     stripOptionPrefix(text) {
       if (!text || typeof text !== "string") return "";
       // Strips redundant prefixes like "B. ", "(A) ", "1. ", "A - ", etc.
@@ -310,7 +320,7 @@
             return { letter: null, explanation: rawText || "(empty response)" };
           }
         } catch (e) {
-          console.error(`[Quiz] askGeminiSingle error attempt ${attempt + 1} model=${model}:`, e);
+          console.warn(`[Quiz] askGeminiSingle error attempt ${attempt + 1} model=${model}:`, e);
           // If network/model error and we have fallback model, try it
           if (e.message && e.message.includes("404") && modelIdx + 1 < modelsToTry.length && attempt === 0) {
             const next = modelsToTry[modelIdx + 1];
@@ -837,7 +847,7 @@
         }
 
         if (isLast) {
-          if (autoNext) {
+          if (autoNext && Utils.isAutoFinishEnabled()) {
             if (progressText) {
               progressText.textContent = `⏳ Semua ${total} soal terisi! Menyelesaikan quiz...`;
               progressText.style.color = "#4CAF50";
@@ -850,7 +860,9 @@
               progressText.style.color = "#FF9800";
             }
           } else if (progressText) {
-            progressText.textContent = `Semua ${total} soal telah terisi!`;
+            progressText.textContent = Utils.isAutoFinishEnabled()
+              ? `Semua ${total} soal telah terisi!`
+              : `Semua ${total} soal telah terisi! Auto Finish nonaktif — silakan periksa lalu klik 'Selesai Quiz'.`;
             progressText.style.color = "#4CAF50";
           }
           break;

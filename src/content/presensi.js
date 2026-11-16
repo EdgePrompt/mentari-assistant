@@ -654,7 +654,7 @@
         try {
           await fetchAllPresensiData();
         } catch (err) {
-          console.error(err);
+          console.warn(err);
           alert('Gagal memuat data presensi.');
         } finally {
           this.hideLoading();
@@ -847,7 +847,7 @@
               pertemuan: presensiData,
             };
           } catch (_err) {
-            console.error(`Gagal mengambil data untuk ${nama_mata_kuliah}`);
+            console.warn(`Gagal mengambil data untuk ${nama_mata_kuliah}`);
             return null;
           }
         })
@@ -858,7 +858,7 @@
       UIRenderer.showMainPopup(allPresensiData);
       return allPresensiData;
     } catch (error) {
-      console.error('Kesalahan fetch presensi:', error);
+      console.warn('Kesalahan fetch presensi:', error);
       showPopupMessage('Terjadi kesalahan saat mengambil data', 'error');
       return null;
     }

@@ -17,7 +17,6 @@
       LECTURER_NOTIFS: "mentari_lecturer_notifs",
       GEMINI_ENABLED: "gemini_enabled",
       AUTO_FINISH_QUIZ: "mentari_auto_finish_quiz",
-      QUIZ_DELAY: "mentari_quiz_delay",
       GEMINI_MODEL: "gemini_model",
       GEMINI_QUOTA: "gemini_quota",
       GEMINI_API_KEY: "geminiApiKey",
@@ -35,6 +34,8 @@
         top: 70px;
         right: 20px;
         width: 500px;
+        height: 600px;
+        max-height: calc(100vh - 90px);
         background: #121316;
         color: #f3f4f6;
         backdrop-filter: blur(24px);
@@ -273,14 +274,7 @@
         color: #0f172a !important;
         border-color: #94a3b8 !important;
       }
-      #token-runner-popup.light-theme #set-quiz-delay {
-        background: #f8fafc !important;
-        color: #0f172a !important;
-        border: 1px solid #94a3b8 !important;
-        font-weight: 600;
-      }
-      #token-runner-popup.light-theme input[type="text"]::placeholder,
-      #token-runner-popup.light-theme #set-quiz-delay::placeholder {
+      #token-runner-popup.light-theme input[type="text"]::placeholder {
         color: #64748b;
       }
       #token-runner-popup.light-theme .token-button.btn-outline {
@@ -387,7 +381,7 @@
         display: flex;
         flex-direction: column;
         height: 100%;
-        max-height: 90vh;
+        max-height: 100%;
       }
       .popup-header {
         padding: 12px 14px;
@@ -1375,32 +1369,6 @@
         "https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20,400,0,0";
       document.head.appendChild(link);
     },
-    parseMinutesToMs(val) {
-      if (!val) return 0;
-      const numStr = String(val).trim();
-      const num = parseFloat(numStr);
-      if (isNaN(num) || num <= 0) return 0;
-
-      if (numStr.includes(".")) {
-        const parts = numStr.split(".");
-        const mins = parseInt(parts[0], 10) || 0;
-        const secsStr = parts[1].padEnd(2, "0").slice(0, 2);
-        const secs = parseInt(secsStr, 10) || 0;
-        return (mins * 60 + secs) * 1000;
-      }
-      return Math.round(num * 60 * 1000);
-    },
-    async countdownDelay(ms, onTick) {
-      let remaining = Math.ceil(ms / 1000);
-      while (remaining > 0) {
-        const m = Math.floor(remaining / 60);
-        const s = remaining % 60;
-        const formatted = `${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`;
-        if (onTick) onTick(formatted, remaining);
-        await new Promise((r) => setTimeout(r, 1000));
-        remaining--;
-      }
-    },
     applyTheme() {
       const container = document.getElementById("token-runner-popup");
       if (!container) return;
@@ -1443,135 +1411,11 @@
         return rawKey;
       }
     },
-    async startQuiz(quizId) {
-      return this.fetch(`${Config.API.BASE_URL}/quiz/start/${quizId}`, {
-        method: "PUT",
-        body: JSON.stringify({
-          id_trx_course_sub_section: quizId,
-          reset: true,
-        }),
-      });
-    },
-    async fetchQuizQuestions(quizId) {
-      return this.fetch(`${Config.API.BASE_URL}/quiz/soal/${quizId}`, {
-        method: "GET",
-        cache: "no-store",
-      });
-    },
     async fetchQuizParticipant(quizId) {
       return this.fetch(`${Config.API.BASE_URL}/quiz/peserta/${quizId}`, {
         method: "GET",
         cache: "no-store",
       });
-    },
-    async submitQuizAnswer(answer) {
-      return this.fetch(`${Config.API.BASE_URL}/quiz/jawab`, {
-        method: "PUT",
-        body: JSON.stringify(answer),
-      });
-    },
-    async endQuiz(quizId) {
-      return this.fetch(`${Config.API.BASE_URL}/quiz/end`, {
-        method: "PUT",
-        body: JSON.stringify({
-          id_trx_course_sub_section: quizId,
-        }),
-      });
-    },
-    async askGeminiQuiz(apiKey, questions) {
-      const selectedModel = (
-        localStorage.getItem(Config.STORAGE_KEYS.GEMINI_MODEL) ||
-        FALLBACK_MODELS[0]
-      ).replace(/"/g, "");
-      const modelsToTry = [...new Set([selectedModel, ...FALLBACK_MODELS])];
-
-      const questionText = questions
-        .map((question, index) => {
-          const isEssay = question.jenis_soal?.toUpperCase() === "ESSAY";
-          const options = (question.list_jawaban || [])
-            .map(
-              (option, optionIndex) => `${optionIndex + 1}. ${option.jawaban}`,
-            )
-            .join("\n");
-          return isEssay
-            ? `SOAL ${index + 1} (ESSAY)\nID: ${question.id}\n${question.deskripsi}\nJawab dengan uraian akademik yang langsung menjawab pertanyaan.`
-            : `SOAL ${index + 1} (PILIHAN GANDA)\nID: ${question.id}\n${question.deskripsi}\n${options}`;
-        })
-        .join("\n\n");
-
-      const prompt = `Kamu adalah AI akademik yang menjawab soal secara langsung dan efisien.
-Aturan wajib:
-- Jawab hanya isi soal yang ditanyakan.
-- Jangan menulis salam, sapaan, pembuka, penutup, basa-basi, atau kalimat tambahan yang tidak diperlukan.
-- Jangan menyapa user dan jangan saling bercakap-cakap.
-- Jangan menulis penjelasan di luar jawaban yang diminta.
-- Balas HANYA JSON array valid tanpa markdown dengan format:
-[{"question_id":"ID_SOAL","answer_index":1,"answer_text":"Jawaban essay"}]
-Untuk PILIHAN GANDA, isi answer_index sesuai urutan pilihan dan jangan isi answer_text.
-Untuk ESSAY, isi answer_text dengan jawaban teks lengkap dan jangan isi answer_index.
-
-${questionText}`;
-
-      let result = null;
-      let lastError = null;
-      for (let i = 0; i < modelsToTry.length; i++) {
-        const model = modelsToTry[i];
-        const response = await fetch(
-          `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`,
-          {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              contents: [{ parts: [{ text: prompt }] }],
-              generationConfig: {
-                temperature: 0.1,
-                maxOutputTokens: 4096,
-                responseMimeType: "application/json",
-              },
-            }),
-          },
-        );
-        if (response.ok) {
-          result = await response.json();
-          break;
-        }
-        lastError = new Error(`Gemini API ${response.status}`);
-        const isRetryable =
-          response.status === 404 ||
-          response.status === 429 ||
-          response.status === 503;
-        if (isRetryable && i < modelsToTry.length - 1) continue;
-        throw lastError;
-      }
-
-      if (!result) throw lastError || new Error("Gemini API gagal merespons");
-
-      const text = result.candidates?.[0]?.content?.parts?.[0]?.text || "";
-      const cleaned = text
-        .replace(/^```(?:json)?\s*/i, "")
-        .replace(/\s*```$/i, "")
-        .trim();
-      const candidates = [cleaned];
-      const arrayStart = cleaned.indexOf("[");
-      const arrayEnd = cleaned.lastIndexOf("]");
-      if (arrayStart >= 0 && arrayEnd > arrayStart)
-        candidates.push(cleaned.slice(arrayStart, arrayEnd + 1));
-      const objectStart = cleaned.indexOf("{");
-      const objectEnd = cleaned.lastIndexOf("}");
-      if (objectStart >= 0 && objectEnd > objectStart)
-        candidates.push(cleaned.slice(objectStart, objectEnd + 1));
-
-      for (const candidate of candidates) {
-        try {
-          const parsed = JSON.parse(candidate);
-          if (Array.isArray(parsed)) return parsed;
-          if (Array.isArray(parsed.answers)) return parsed.answers;
-          if (Array.isArray(parsed.results)) return parsed.results;
-        } catch (error) {}
-      }
-
-      console.error("[Mentari Assistant] Respons mentah AI quiz bukan JSON", text);
-      throw new Error("Respons AI bukan JSON");
     },
     async fetchForumTopics(id) {
       return this.fetch(`${Config.API.BASE_URL}/forum/topic/${id}`);
@@ -1642,7 +1486,7 @@ ${questionText}`;
           <div class="popup-header">
             <div class="header-top">
               <div style="display:flex; align-items:center; gap:10px;">
-                <img class="popup-logo-img" alt="Mentari Assistant" style="width:32px; height:32px; border-radius:8px; object-fit:contain; flex-shrink:0; box-shadow:0 2px 6px rgba(0,0,0,0.4);">
+                <img class="popup-logo-img" alt="Mentari Assistant" onerror="this.style.display='none'" style="width:32px; height:32px; border-radius:8px; object-fit:contain; flex-shrink:0; box-shadow:0 2px 6px rgba(0,0,0,0.4);">
                 <div style="display:flex; flex-direction:column;">
                   <span class="popup-title">Mentari Assistant</span>
                   <span class="popup-subtitle">by <a style="color: #9ca3af; text-decoration: none;" href="https://github.com/EdgePrompt" target="_blank">EdgePrompt</a></span>
@@ -1690,6 +1534,9 @@ ${questionText}`;
           t.classList.add("active");
           const panel = document.getElementById(t.dataset.tab + "-tab");
           if (panel) panel.classList.add("active");
+          if (t.dataset.tab === "notif-tab") {
+            App.syncLecturerNotifications(State.courseDataList);
+          }
         };
       });
     },
@@ -1999,11 +1846,15 @@ ${questionText}`;
         }
         icon = this.getMaterialIcon(i.kode_template);
       } else if (isKuesioner) {
-        actionUrl = "#";
+        cardUrl =
+          c.kode_course && s.kode_section
+            ? `https://mentari.unpam.ac.id/u-courses/${c.kode_course}/kuesioner/${s.kode_section}`
+            : "#";
+        actionUrl = cardUrl;
         iconClass = "icon-quiz";
         icon = "bar_chart";
-        actionLabel = "Isi Kuesioner";
-        actionIcon = "play_arrow";
+        actionLabel = "Isi Kuesioner Otomatis";
+        actionIcon = "bolt";
       } else if (isTugas) {
         iconClass = "icon-material";
         icon = "assignment";
@@ -2055,8 +1906,8 @@ ${questionText}`;
                   : ""
               }
               ${
-                isQuiz || isKuesioner
-                  ? `<button type="button" class="token-button ${isQuiz ? "quiz-ai-submit-btn" : "kuesioner-submit-btn"}" title="${btnTitle}" ${isFinished ? 'disabled="disabled"' : ""} data-course-code="${c.kode_course}" data-section-code="${s.kode_section}" data-quiz-id="${isQuiz ? i.id : ""}" data-quiz-title="${isQuiz ? Utils.escapeHtml(i.judul) : ""}" onclick="event.stopPropagation();" style="${btnStyle}"><span class="ms" style="font-size:15px;">${btnIcon}</span></button>`
+                isKuesioner
+                  ? `<button type="button" class="token-button kuesioner-submit-btn" title="${btnTitle}" ${isFinished ? 'disabled="disabled"' : ""} data-course-code="${c.kode_course}" data-section-code="${s.kode_section}" onclick="event.stopPropagation();" style="${btnStyle}"><span class="ms" style="font-size:15px;">${btnIcon}</span></button>`
                   : actionUrl !== "#"
                     ? `<a href="${isFinished ? "#" : actionUrl}" target="_blank" rel="noopener noreferrer" class="token-button" title="${btnTitle}" ${isFinished ? 'onclick="event.preventDefault(); event.stopPropagation();"' : 'onclick="event.stopPropagation();"'} style="${btnStyle}"><span class="ms" style="font-size:15px;">${btnIcon}</span></a>`
                     : ""
@@ -2118,6 +1969,7 @@ ${questionText}`;
                 });
               target.classList.add("active");
               toggle?.classList.add("active");
+              this.loadSectionData(target);
             }
           }
         };
@@ -2164,7 +2016,7 @@ ${questionText}`;
             Utils.successToast("Kuisioner berhasil dikirim");
             setTimeout(() => App.refreshData(true), 700);
           } catch (error) {
-            console.error("[Mentari Assistant] Gagal submit kuisioner", {
+            console.warn("[Mentari Assistant] Gagal submit kuisioner", {
               kode_course: courseCode,
               kode_section: sectionCode,
               error,
@@ -2177,109 +2029,30 @@ ${questionText}`;
         };
       });
 
-      document.querySelectorAll(".quiz-ai-submit-btn").forEach((button) => {
-        button.onclick = async (e) => {
-          e.stopPropagation();
-          if (button.disabled) return;
-
-          const quizId = button.dataset.quizId;
-          const quizTitle = button.dataset.quizTitle;
-          const originalContent = button.innerHTML;
-          button.disabled = true;
-          button.innerHTML = `<span class="ms mentari-spin" style="font-size:16px;">sync</span>`;
-
-          try {
-            Utils.progressToast("Sedang memulai quiz...");
-            await ApiService.startQuiz(quizId);
-            Utils.progressToast("Sedang mencari soal quiz...");
-            const questions =
-              (await ApiService.fetchQuizQuestions(quizId))?.data || [];
-            if (!questions.length) throw new Error("Soal quiz kosong");
-
-            Utils.progressToast("AI sedang menjawab quiz...");
-            const answers = await ApiService.askGeminiQuiz(
-              ApiService.getGeminiApiKey(),
-              questions,
-            );
-            const answersByQuestion = new Map(
-              answers.map((answer) => [answer.question_id, answer]),
-            );
-
-            for (const question of questions) {
-              const aiAnswer = answersByQuestion.get(question.id);
-              const isEssay = question.jenis_soal?.toUpperCase() === "ESSAY";
-              let payload;
-
-              if (isEssay) {
-                const answerText = String(aiAnswer?.answer_text || "").trim();
-                if (!answerText)
-                  throw new Error(
-                    `Jawaban essay AI kosong untuk ${question.id}`,
-                  );
-                payload = {
-                  id_trx_quiz_user_soal: question.id,
-                  id_jawaban: null,
-                  jawaban: answerText,
-                };
-              } else {
-                const answerIndex = aiAnswer?.answer_index;
-                const selectedAnswer =
-                  question.list_jawaban?.[Number(answerIndex) - 1];
-                if (!selectedAnswer?.id)
-                  throw new Error(
-                    `Jawaban AI tidak valid untuk ${question.id}`,
-                  );
-                payload = {
-                  id_trx_quiz_user_soal: question.id,
-                  id_jawaban: selectedAnswer.id,
-                  jawaban: null,
-                };
-              }
-
-              Utils.progressToast("Sedang mengirim jawaban quiz...");
-              await ApiService.submitQuizAnswer(payload);
-            }
-
-            const quizDelaySetting =
-              Utils.get(Config.STORAGE_KEYS.QUIZ_DELAY) || "0";
-            const delayMs = Utils.parseMinutesToMs(quizDelaySetting);
-            if (delayMs > 0) {
-              await Utils.countdownDelay(delayMs, (formattedTime) => {
-                Utils.progressToast(
-                  `Menunggu ${formattedTime} sebelum menyelesaikan quiz...`,
-                );
-              });
-            }
-
-            Utils.progressToast("Sedang menyelesaikan quiz...");
-            await ApiService.endQuiz(quizId);
-            Utils.closeProgressToast();
-            Utils.successToast("Jawaban quiz berhasil diisi AI & diselesaikan");
-            setTimeout(() => App.refreshData(true), 700);
-          } catch (error) {
-            console.error("[Mentari Assistant] Gagal mengisi quiz dengan AI", {
-              quizId,
-              quizTitle,
-              error,
-            });
-            Utils.closeProgressToast();
-            Utils.toast(`AI quiz gagal: ${error.message}`);
-          } finally {
-            button.disabled = false;
-            button.innerHTML = originalContent;
-          }
-        };
+      document.querySelectorAll(".section-content.active").forEach((section) => {
+        this.loadSectionData(section);
       });
-
-      this.loadKuesioner(data);
-      this.loadQuizParticipants();
-      this.loadTopics();
     },
 
-    loadQuizParticipants() {
-      document
+    loadSectionData(scope = document, force = false) {
+      if (!scope) return;
+      if (!force && scope !== document && scope.dataset?.loaded === "true") {
+        return;
+      }
+      if (scope !== document && scope.dataset) {
+        scope.dataset.loaded = "true";
+      }
+      this.loadQuizParticipants(scope, force);
+      this.loadTopics(scope, force);
+    },
+
+    loadQuizParticipants(scope = document, force = false) {
+      if (!scope) return;
+      scope
         .querySelectorAll(".quiz-participant-status[data-quiz-id]")
         .forEach(async (statusEl) => {
+          if (!force && statusEl.dataset.loaded === "true") return;
+          statusEl.dataset.loaded = "true";
           try {
             const result = await ApiService.fetchQuizParticipant(
               statusEl.dataset.quizId,
@@ -2303,34 +2076,20 @@ ${questionText}`;
                 : "-";
             statusEl.innerHTML = `<span class="ms" style="font-size:12px;">timer</span> ${Utils.escapeHtml(timeDisplay)} <span style="margin-left:4px;">Nilai: ${Utils.escapeHtml(grade)}</span>`;
           } catch (error) {
+            delete statusEl.dataset.loaded;
             statusEl.textContent = "Status tidak tersedia";
           }
         });
     },
 
-    loadKuesioner(data) {
-      data.forEach((course) => {
-        (course.data || []).forEach((section) => {
-          const hasKuesioner = (section.sub_section || []).some(
-            (item) =>
-              item.kode_template === "KUESIONER" || item.tipe === "QUESIONER",
-          );
-          if (!hasKuesioner || !course.kode_course || !section.kode_section)
-            return;
-
-          ApiService.fetchKuesioner(course.kode_course, section.kode_section).catch(
-            () => {},
-          );
-        });
-      });
-    },
-
-    loadTopics() {
-      document
-        .querySelectorAll(".topics-container")
-        .forEach(async (container) => {
+    loadTopics(scope = document, force = false) {
+      if (!scope) return Promise.resolve();
+      const tasks = Array.from(scope.querySelectorAll(".topics-container")).map(
+        async (container) => {
+          if (!force && container.dataset.loaded === "true") return;
           const id = container.dataset.forumId;
           if (!id || id === "null" || id === "undefined") return;
+          container.dataset.loaded = "true";
           container.onclick = (event) => event.stopPropagation();
           try {
             const res = await ApiService.fetchForumTopics(id);
@@ -2341,8 +2100,12 @@ ${questionText}`;
               container.innerHTML = "";
               await this.loadForumReplies(container, topics);
             }
-          } catch (e) {}
-        });
+          } catch (e) {
+            delete container.dataset.loaded;
+          }
+        },
+      );
+      return Promise.all(tasks);
     },
 
     async loadForumReplies(container, topics) {
@@ -2625,7 +2388,12 @@ ${questionText}`;
           });
           Utils.successToast("Reply forum berhasil dikirim");
           form.remove();
-          await this.loadTopics();
+          await this.loadTopics(
+            container.closest(".section-content") ||
+              container.parentElement ||
+              document,
+            true,
+          );
         } catch (error) {
           Utils.toast(`Reply forum gagal: ${error.message}`);
           sendButton.disabled = false;
@@ -2812,7 +2580,15 @@ ${questionText}`;
 
     settings(info) {
       const el = document.getElementById("set-tab-tab");
-      if (!el || !info) return;
+      if (!el) return;
+      const profile = info || {
+        fullname: "Mahasiswa UNPAM",
+        username: "-",
+        role: "Student",
+      };
+      const fullname = profile.fullname || "Mahasiswa UNPAM";
+      const username = profile.username || "-";
+      const role = profile.role || "Student";
 
       const currentModel =
         (
@@ -2823,14 +2599,14 @@ ${questionText}`;
       const isGeminiEnabled =
         Utils.get(Config.STORAGE_KEYS.GEMINI_ENABLED) !== false;
       const isAutoFinishQuiz =
-        Utils.get(Config.STORAGE_KEYS.AUTO_FINISH_QUIZ) === true;
+        Utils.get(Config.STORAGE_KEYS.AUTO_FINISH_QUIZ) !== false;
 
       el.innerHTML = `
         <div class="settings-profile">
-          <div class="settings-avatar">${Utils.escapeHtml((info.fullname || "?").charAt(0))}</div>
+          <div class="settings-avatar">${Utils.escapeHtml(fullname.charAt(0))}</div>
           <div class="settings-profile-info">
-            <div class="settings-label">${Utils.escapeHtml(info.fullname)}</div>
-            <div class="settings-desc">${Utils.escapeHtml(info.username)} &bull; ${Utils.escapeHtml(info.role)}</div>
+            <div class="settings-label">${Utils.escapeHtml(fullname)}</div>
+            <div class="settings-desc">${Utils.escapeHtml(username)} &bull; ${Utils.escapeHtml(role)}</div>
           </div>
         </div>
 
@@ -2862,38 +2638,27 @@ ${questionText}`;
             </div>
             <label class="switch"><input type="checkbox" id="set-quiz" ${isAutoFinishQuiz ? "checked" : ""}><span class="slider"></span></label>
           </div>
-          <div class="settings-row" style="flex-direction:column; align-items:flex-start; gap:8px; padding:12px;">
-            <div class="settings-row-main" style="width:100%;">
-              <div class="settings-row-title"><span class="ms">hourglass_top</span> Waktu Penyelesaian Quiz (Menit)</div>
-              <div class="settings-row-desc" style="margin-left:0; margin-top:4px; line-height:1.4;">
-                Durasi tunggu sebelum submit, contoh: <strong>3.21</strong> (3 mnt 21 dtk) atau <strong>0</strong> untuk langsung selesai.
-              </div>
-            </div>
-            <div style="display:flex; align-items:center; gap:8px; width:100%; margin-top:4px;">
-              <input type="text" id="set-quiz-delay" placeholder="0 (Default)" value="${Utils.escapeHtml(Utils.get(Config.STORAGE_KEYS.QUIZ_DELAY) || "0")}"
-                style="flex:1; height:32px; background:#14161a; border:1px solid #2a2d35; border-radius:6px; padding:0 10px; color:#f3f4f6; font-weight:600; font-size:12px; font-family:monospace; outline:none;" />
-              <button id="save-quiz-delay" class="token-button" style="height:32px; padding:0 12px; font-size:11px; border-radius:6px; flex-shrink:0;">Simpan</button>
-            </div>
-          </div>
         </div>
 
         <div class="settings-section">
           <div class="settings-section-header">
             <span class="settings-section-title"><span class="ms">auto_awesome</span> Konfigurasi Model</span>
-            <span id="set-model-status" style="font-size:9px; opacity:0.65;">Preset &amp; API</span>
+            <span id="set-model-status" style="font-size:9px; opacity:0.65;">${isCustom ? "Custom" : "Preset"}</span>
           </div>
-          <div style="padding:10px 12px; border-bottom:1px solid #2a2d35;">
+          <div style="padding:10px 12px;">
             <select id="set-gemini-model" style="width:100%; background:#121316; color:#f3f4f6; border:1px solid #2a2d35; border-radius:6px; padding:7px 8px; font-size:12px; outline:none; cursor:pointer;">
               <option value="gemini-3.5-flash-lite" ${currentModel === "gemini-3.5-flash-lite" ? "selected" : ""}>Gemini 3.5 Flash Lite (Rekomendasi)</option>
               <option value="gemini-3.1-flash-lite" ${currentModel === "gemini-3.1-flash-lite" ? "selected" : ""}>Gemini 3.1 Flash Lite (Cepat)</option>
               <option value="gemini-2.5-flash-lite" ${currentModel === "gemini-2.5-flash-lite" ? "selected" : ""}>Gemini 2.5 Flash Lite (Cadangan)</option>
               <option value="custom" ${isCustom ? "selected" : ""}>Model Lainnya...</option>
             </select>
-            <input type="text" id="set-gemini-custom" placeholder="Contoh: gemini-2.5-flash" value="${isCustom ? Utils.escapeHtml(currentModel) : ""}"
-              style="display:${isCustom ? "block" : "none"}; width:100%; box-sizing:border-box; background:#121316; color:#f3f4f6; border:1px solid #2a2d35; border-radius:6px; padding:7px 8px; font-size:12px; outline:none; margin-top:6px;">
-          </div>
-          <div id="set-model-list" class="settings-model-list">
-            <div style="text-align:center; padding:14px; opacity:0.5; font-size:11px;">Memuat daftar model...</div>
+            <div id="set-gemini-custom-wrap" style="display:${isCustom ? "block" : "none"}; margin-top:8px;">
+              <input type="text" id="set-gemini-custom" placeholder="Contoh: gemini-2.5-flash" value="${isCustom ? Utils.escapeHtml(currentModel) : ""}"
+                style="width:100%; box-sizing:border-box; background:#121316; color:#f3f4f6; border:1px solid #2a2d35; border-radius:6px; padding:7px 8px; font-size:12px; outline:none;">
+              <div id="set-model-list" class="settings-model-list" style="margin-top:8px; border:1px solid #2a2d35; border-radius:6px; max-height:160px; overflow-y:auto;">
+                <div style="text-align:center; padding:12px; opacity:0.5; font-size:11px;">Memuat daftar model...</div>
+              </div>
+            </div>
           </div>
         </div>
 
@@ -2916,11 +2681,18 @@ ${questionText}`;
       `;
 
       const modelSelect = document.getElementById("set-gemini-model");
+      const customWrap = document.getElementById("set-gemini-custom-wrap");
       const customInput = document.getElementById("set-gemini-custom");
+      let liveModelsLoaded = false;
 
       document.getElementById("set-gemini").onchange = (e) => {
         Utils.save(Config.STORAGE_KEYS.GEMINI_ENABLED, e.target.checked);
-        location.reload();
+        Utils.toast(
+          e.target.checked
+            ? "AI Chatbot (Gemini) diaktifkan"
+            : "AI Chatbot (Gemini) dinonaktifkan",
+        );
+        setTimeout(() => location.reload(), 600);
       };
 
       document.getElementById("set-quiz").onchange = (e) => {
@@ -2932,20 +2704,17 @@ ${questionText}`;
         );
       };
 
-      document.getElementById("save-quiz-delay").onclick = (e) => {
-        e.stopPropagation();
-        const val = document.getElementById("set-quiz-delay").value.trim();
-        Utils.save(Config.STORAGE_KEYS.QUIZ_DELAY, val || "0");
-        Utils.toast("Waktu tunda quiz disimpan: " + (val || "0") + " menit");
-      };
-
       modelSelect.onchange = (e) => {
         const val = e.target.value;
         if (val === "custom") {
-          customInput.style.display = "block";
+          customWrap.style.display = "block";
           customInput.focus();
+          if (!liveModelsLoaded) {
+            liveModelsLoaded = true;
+            this._loadModelList(currentModel);
+          }
         } else {
-          customInput.style.display = "none";
+          customWrap.style.display = "none";
           Utils.save(Config.STORAGE_KEYS.GEMINI_MODEL, val);
           Utils.toast("Model diperbarui: " + val);
           setTimeout(() => location.reload(), 600);
@@ -3009,7 +2778,10 @@ ${questionText}`;
         };
       }
 
-      this._loadModelList(currentModel);
+      if (isCustom) {
+        liveModelsLoaded = true;
+        this._loadModelList(currentModel);
+      }
     },
 
     async _loadModelList(currentModel) {
@@ -3116,6 +2888,9 @@ ${questionText}`;
 
   const App = {
     async init() {
+      if (localStorage.getItem(Config.STORAGE_KEYS.GEMINI_ENABLED) === null) {
+        Utils.save(Config.STORAGE_KEYS.GEMINI_ENABLED, true);
+      }
       Utils.injectMaterialIcons();
       UIRenderer.injectStyles();
       UIRenderer.createPopup();
@@ -3137,6 +2912,11 @@ ${questionText}`;
         Utils.remove(Config.STORAGE_KEYS.USER_INFO);
         Utils.remove(Config.STORAGE_KEYS.COURSE_DATA);
         Utils.remove(Config.STORAGE_KEYS.LECTURER_NOTIFS);
+      }
+
+      const cachedUser = Utils.get(Config.STORAGE_KEYS.USER_INFO);
+      if (cachedUser && typeof cachedUser === "object") {
+        State.userInfo = cachedUser;
       }
 
       const cachedNotifs = Utils.get(Config.STORAGE_KEYS.LECTURER_NOTIFS);
@@ -3256,16 +3036,22 @@ ${questionText}`;
         this.render();
         this.restoreForumUiState(forumUiState);
 
-        // Fetch lecturer replies asynchronously without blocking panel render
-        this.syncLecturerNotifications(State.courseDataList);
+        State.notifsSynced = false;
+        if (
+          document.getElementById("notif-tab-tab")?.classList.contains("active")
+        ) {
+          this.syncLecturerNotifications(State.courseDataList, true);
+        }
       } catch (e) {
       } finally {
         State.isFetching = false;
         UIRenderer.setLoading(false);
       }
     },
-    async syncLecturerNotifications(courseDataList) {
+    async syncLecturerNotifications(courseDataList, force = false) {
       if (!Array.isArray(courseDataList) || !courseDataList.length) return;
+      if (State.isSyncingNotifs || (!force && State.notifsSynced)) return;
+      State.isSyncingNotifs = true;
       try {
         const forumTargets = [];
         for (const course of courseDataList) {
@@ -3340,7 +3126,11 @@ ${questionText}`;
         State.lecturerNotifications = notifs;
         Utils.save(Config.STORAGE_KEYS.LECTURER_NOTIFS, notifs);
         Renderers.notif(notifs);
-      } catch (_) {}
+        State.notifsSynced = true;
+      } catch (_) {
+      } finally {
+        State.isSyncingNotifs = false;
+      }
     },
     captureForumUiState() {
       const forum = document.getElementById("forum-tab-tab");
@@ -3387,6 +3177,7 @@ ${questionText}`;
           ?.querySelector(".section-toggle")
           ?.classList.add("active");
         section.scrollTop = scrollTop;
+        ForumRenderer.loadSectionData(section);
       });
 
       const restoreScroll = () => {
@@ -3414,9 +3205,18 @@ ${questionText}`;
       Renderers.forum(State.courseDataList);
       Renderers.mhs(State.courseDataList);
       Renderers.notif(State.lecturerNotifications);
-      if (State.userInfo) Renderers.settings(State.userInfo);
+      Renderers.settings(
+        State.userInfo || {
+          fullname: "Mahasiswa UNPAM",
+          username: "-",
+          role: "Student",
+        },
+      );
     },
   };
+
+  let activeOutsideClickHandler = null;
+  let outsideClickTimer = null;
 
   window.toggleTokenPopup = () => {
     let p = document.getElementById("token-runner-popup");
@@ -3427,6 +3227,15 @@ ${questionText}`;
     }
     if (!p) return;
 
+    if (outsideClickTimer) {
+      clearTimeout(outsideClickTimer);
+      outsideClickTimer = null;
+    }
+    if (activeOutsideClickHandler) {
+      document.removeEventListener("mousedown", activeOutsideClickHandler);
+      activeOutsideClickHandler = null;
+    }
+
     if (!p.classList.contains("active")) {
       document
         .getElementById("gemini-chat-container")
@@ -3436,36 +3245,29 @@ ${questionText}`;
         ?.classList.remove("active");
       UIRenderer.updatePosition();
       p.classList.add("active");
-      const close = (e) => {
+      activeOutsideClickHandler = (e) => {
         if (
           !p.contains(e.target) &&
           !document
             .getElementById("mentari-header-toggle")
             ?.contains(e.target) &&
-          !e.target.closest(".toast")
+          !e.target?.closest?.(".toast")
         ) {
           p.classList.remove("active");
-          document.removeEventListener("mousedown", close);
+          document.removeEventListener("mousedown", activeOutsideClickHandler);
+          activeOutsideClickHandler = null;
         }
       };
-      setTimeout(() => {
-        document.addEventListener("mousedown", close);
+      outsideClickTimer = setTimeout(() => {
+        outsideClickTimer = null;
+        if (p.classList.contains("active") && activeOutsideClickHandler) {
+          document.addEventListener("mousedown", activeOutsideClickHandler);
+        }
       }, 50);
     } else {
       p.classList.remove("active");
     }
   };
-
-  window.addEventListener("mentari-toggle-popup", () => {
-    if (typeof window.toggleTokenPopup === "function") {
-      window.toggleTokenPopup();
-    }
-  });
-  document.addEventListener("mentari-toggle-popup", () => {
-    if (typeof window.toggleTokenPopup === "function") {
-      window.toggleTokenPopup();
-    }
-  });
 
   if (document.readyState === "loading")
     document.addEventListener("DOMContentLoaded", () => App.init());

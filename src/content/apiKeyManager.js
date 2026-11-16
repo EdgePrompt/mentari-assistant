@@ -1,4 +1,9 @@
 (() => {
+  if (document.documentElement?.dataset?.mentariApiKeyManagerLoaded === 'true') return;
+  if (document.documentElement) {
+    document.documentElement.dataset.mentariApiKeyManagerLoaded = 'true';
+  }
+
   function injectStyles() {
     if (document.getElementById('gemini_api_styles')) return;
 

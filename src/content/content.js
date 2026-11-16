@@ -11,6 +11,12 @@
     document.documentElement.dataset.mentariIcon128 = chrome.runtime.getURL('src/assets/icon-128.png');
   } catch (_err) {}
 
+  try {
+    if (localStorage.getItem('gemini_enabled') === null) {
+      localStorage.setItem('gemini_enabled', 'true');
+    }
+  } catch (_err) {}
+
   if (!document.getElementById('material-icons-css')) {
     const iconLink = document.createElement('link');
     iconLink.id = 'material-icons-css';
