@@ -130,16 +130,18 @@
     };
 
     loadScript('src/content/apiKeyManager.js', () => {
-      loadScript('src/content/token.js', () => {
+      loadScript('src/content/panelUI.js', () => {
         loadScript('src/content/guidebook.js', () => {
-          scriptsLoaded = true;
-          scriptsLoading = false;
-          const queue = pendingCallbacks.slice();
-          pendingCallbacks = [];
-          queue.forEach((cb) => {
-            try {
-              cb();
-            } catch (_e) {}
+          loadScript('src/content/token.js', () => {
+            scriptsLoaded = true;
+            scriptsLoading = false;
+            const queue = pendingCallbacks.slice();
+            pendingCallbacks = [];
+            queue.forEach((cb) => {
+              try {
+                cb();
+              } catch (_e) {}
+            });
           });
         });
       });

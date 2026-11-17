@@ -1,5 +1,5 @@
 (function () {
-  const APP_VERSION = "1.1.0";
+  const APP_VERSION = "1.2.0";
   console.log("Mentari Assistant Token script loaded.");
 
   const FALLBACK_MODELS = [
@@ -21,1174 +21,13 @@
       GEMINI_QUOTA: "gemini_quota",
       GEMINI_API_KEY: "geminiApiKey",
       GEMINI_MODEL_STATS: "gemini_model_stats",
+      THEME_MODE: "mentari_panel_theme",
     },
     API: {
       BASE_URL: "https://mentari.unpam.ac.id/api",
       GITHUB_API:
         "https://api.github.com/repos/EdgePrompt/mentari-assistant/releases/latest",
     },
-    STYLES: `
-      #token-runner-popup {
-        position: fixed;
-        z-index: 99999;
-        top: 70px;
-        right: 20px;
-        width: 500px;
-        height: 600px;
-        max-height: calc(100vh - 90px);
-        background: #121316;
-        color: #f3f4f6;
-        backdrop-filter: blur(24px);
-        border: 1px solid #2a2d35;
-        border-radius: 14px;
-        box-shadow: 0 20px 50px rgba(0, 0, 0, 0.55);
-        overflow: hidden;
-        transition: all 0.28s cubic-bezier(0.4, 0, 0.2, 1);
-        visibility: hidden;
-        opacity: 0;
-        transform: translateY(-15px) scale(0.95);
-        pointer-events: none;
-        font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
-      }
-      #token-runner-popup.active {
-        visibility: visible;
-        opacity: 1;
-        transform: translateY(0) scale(1);
-        pointer-events: auto;
-      }
-
-      /* Light Theme Adaptation */
-      #token-runner-popup.light-theme {
-        background: #ffffff;
-        color: #17202a;
-        border: 1px solid #cbd5e1;
-        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-      }
-      #token-runner-popup.light-theme .popup-header {
-        background: linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%);
-        border-bottom-color: #cbd5e1;
-      }
-      #token-runner-popup.light-theme .popup-title {
-        color: #ea580c;
-      }
-      #token-runner-popup.light-theme .popup-subtitle {
-        color: #64748b;
-      }
-      #token-runner-popup.light-theme .popup-version-badge {
-        color: #c2410c;
-        background: #ffedd5;
-        border-color: #fdba74;
-      }
-      #token-runner-popup.light-theme .token-tabs {
-        background: #e2e8f0;
-        border-color: #cbd5e1;
-      }
-      #token-runner-popup.light-theme .token-tab {
-        color: #475569;
-      }
-      #token-runner-popup.light-theme .token-tab:hover {
-        color: #0f172a;
-        background: rgba(255, 255, 255, 0.6);
-      }
-      #token-runner-popup.light-theme .token-tab.active {
-        color: #ea580c;
-        background: #ffffff;
-        border-color: #fdba74;
-        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
-      }
-      #token-runner-popup.light-theme .data-card,
-      #token-runner-popup.light-theme .course-card {
-        background: #ffffff;
-        border-color: #cbd5e1;
-      }
-      #token-runner-popup.light-theme .course-card {
-        box-shadow: 0 2px 10px rgba(15, 23, 42, 0.05);
-      }
-      #token-runner-popup.light-theme .course-card-header {
-        background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
-        border-bottom-color: #cbd5e1;
-      }
-      #token-runner-popup.light-theme .course-progress-track {
-        background: rgba(0, 0, 0, 0.1);
-      }
-      #token-runner-popup.light-theme .course-card-header h2 {
-        color: #ea580c;
-      }
-      #token-runner-popup.light-theme .course-title,
-      #token-runner-popup.light-theme .course-meeting-label {
-        color: #0f172a;
-      }
-      #token-runner-popup.light-theme .course-code,
-      #token-runner-popup.light-theme .course-progress-label {
-        color: #64748b;
-      }
-      #token-runner-popup.light-theme .course-progress-value {
-        color: #15803d;
-      }
-      #token-runner-popup.light-theme .course-chip {
-        border: 1px solid transparent;
-      }
-      #token-runner-popup.light-theme .course-chip-sks {
-        background: #e0f2fe !important;
-        border-color: #7dd3fc !important;
-        color: #075985 !important;
-      }
-      #token-runner-popup.light-theme .course-chip-day {
-        background: #dcfce7 !important;
-        border-color: #86efac !important;
-        color: #166534 !important;
-      }
-      #token-runner-popup.light-theme .course-chip-class {
-        background: #ffedd5 !important;
-        border-color: #fdba74 !important;
-        color: #c2410c !important;
-      }
-      #token-runner-popup.light-theme .course-card-body {
-        background: #f8fafc;
-        border-top-color: #e2e8f0 !important;
-      }
-      #token-runner-popup.light-theme .section-card {
-        background: #ffffff;
-        border-color: #e2e8f0;
-        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.04);
-      }
-      #token-runner-popup.light-theme .section-header {
-        background: linear-gradient(90deg, #f8fafc, #f1f5f9);
-      }
-      #token-runner-popup.light-theme .section-header:hover {
-        background: linear-gradient(90deg, #ffedd5, #f8fafc);
-      }
-      #token-runner-popup.light-theme .section-header h3 {
-        color: #0f172a;
-      }
-      #token-runner-popup.light-theme .section-header-icon {
-        background: #ffedd5;
-        color: #ea580c;
-      }
-      #token-runner-popup.light-theme .section-content {
-        background: #f8fafc;
-        border-top-color: #e2e8f0;
-      }
-      #token-runner-popup.light-theme .item-row {
-        background: #ffffff;
-        border-color: #e2e8f0;
-      }
-      #token-runner-popup.light-theme .item-row:hover {
-        background: #f1f5f9 !important;
-        border-color: #fb923c;
-      }
-      #token-runner-popup.light-theme .item-row:hover .item-title {
-        color: #ea580c;
-      }
-      #token-runner-popup.light-theme .item-title {
-        color: #1e293b;
-      }
-      #token-runner-popup.light-theme .item-meta {
-        color: #475569;
-        opacity: 1;
-      }
-      #token-runner-popup.light-theme .card-title {
-        color: #1e293b;
-      }
-      #token-runner-popup.light-theme .student-item {
-        background: #ffffff;
-      }
-      #token-runner-popup.light-theme .student-list-card,
-      #token-runner-popup.light-theme .settings-section,
-      #token-runner-popup.light-theme .settings-profile {
-        background: #ffffff;
-        border-color: #cbd5e1;
-      }
-      #token-runner-popup.light-theme .settings-profile {
-        background: #fff7ed;
-        border-color: #fdba74;
-      }
-      #token-runner-popup.light-theme .student-list-header,
-      #token-runner-popup.light-theme .settings-section-header {
-        background: #f1f5f9;
-        border-color: #cbd5e1;
-      }
-      #token-runner-popup.light-theme .student-row:hover,
-      #token-runner-popup.light-theme .settings-row:hover {
-        background: #f1f5f9;
-        border-color: rgba(0, 0, 0, 0.12);
-      }
-      #token-runner-popup.light-theme .student-row {
-        background: rgba(0, 0, 0, 0.02);
-        border-color: rgba(0, 0, 0, 0.06);
-      }
-      #token-runner-popup.light-theme .student-avatar {
-        background: #ffedd5;
-        color: #ea580c;
-        border-color: #fdba74;
-      }
-      #token-runner-popup.light-theme .student-name,
-      #token-runner-popup.light-theme .settings-row-title {
-        color: #1e293b;
-      }
-      #token-runner-popup.light-theme .student-count,
-      #token-runner-popup.light-theme .student-nim,
-      #token-runner-popup.light-theme .student-list-title .ms,
-      #token-runner-popup.light-theme .settings-section-title .ms {
-        color: #c2410c;
-      }
-      #token-runner-popup.light-theme .student-count {
-        background: #ffedd5;
-        border-color: #fdba74;
-      }
-      #token-runner-popup.light-theme .student-meta,
-      #token-runner-popup.light-theme .settings-row-desc {
-        color: #475569;
-        opacity: 0.9;
-      }
-      #token-runner-popup.light-theme .student-rank,
-      #token-runner-popup.light-theme .settings-section-label {
-        color: #64748b;
-        background: #f1f5f9;
-        border-color: #cbd5e1;
-      }
-      #token-runner-popup.light-theme .settings-section-title {
-        color: #0f172a;
-      }
-      #token-runner-popup.light-theme .settings-disclaimer {
-        background: #fff7ed;
-        border-color: #fdba74;
-      }
-      #token-runner-popup.light-theme .settings-label {
-        color: #1e293b;
-      }
-      #token-runner-popup.light-theme .settings-desc {
-        color: #475569;
-      }
-      #token-runner-popup.light-theme .settings-area {
-        background: #f8fafc;
-        border-color: #cbd5e1;
-      }
-      #token-runner-popup.light-theme .settings-card-inner {
-        background: #fff7ed;
-        border-color: #fdba74;
-      }
-      #token-runner-popup.light-theme select,
-      #token-runner-popup.light-theme input[type="text"] {
-        background: #ffffff !important;
-        color: #0f172a !important;
-        border-color: #94a3b8 !important;
-      }
-      #token-runner-popup.light-theme input[type="text"]::placeholder {
-        color: #64748b;
-      }
-      #token-runner-popup.light-theme .token-button.btn-outline {
-        background: #ffffff !important;
-        border-color: #cbd5e1 !important;
-        color: #1e293b !important;
-      }
-      #token-runner-popup.light-theme .token-button.btn-outline:hover {
-        background: #fff7ed !important;
-        border-color: #fb923c !important;
-      }
-      #token-runner-popup.light-theme .settings-footer {
-        color: #64748b;
-      }
-      #token-runner-popup.light-theme .mentari-model-item {
-        background: #ffffff;
-        border-color: #cbd5e1;
-        color: #1e293b;
-      }
-      #token-runner-popup.light-theme .mentari-model-item:hover {
-        background: #f8fafc;
-      }
-      #token-runner-popup.light-theme .mentari-model-item.is-active {
-        background: #fff7ed;
-        border-color: #f97316;
-        color: #ea580c;
-      }
-      #token-runner-popup.light-theme .mentari-model-item .model-id-sub {
-        color: #475569;
-      }
-      #token-runner-popup.light-theme #set-model-status {
-        color: #475569;
-      }
-      #token-runner-popup.light-theme .topic-badge {
-        background: #fff7ed;
-        border-color: #fdba74;
-        color: #c2410c !important;
-      }
-      #token-runner-popup.light-theme .topic-badge:hover {
-        background: #ffedd5;
-        border-color: #f97316;
-      }
-      #token-runner-popup.light-theme .forum-html-preview {
-        color: #17202a !important;
-        background: #f1f5f9 !important;
-      }
-      #token-runner-popup.light-theme .notif-content {
-        color: #334155 !important;
-      }
-      #token-runner-popup.light-theme .notif-link {
-        background: #f1f5f9 !important;
-        color: #1e293b !important;
-        border-color: #cbd5e1 !important;
-      }
-      #token-runner-popup.light-theme .icon-forum {
-        background: #ffedd5;
-        color: #ea580c;
-      }
-      #token-runner-popup.light-theme .icon-quiz {
-        background: #dcfce7;
-        color: #166534;
-      }
-      #token-runner-popup.light-theme .icon-material {
-        background: #e0f2fe;
-        color: #0369a1;
-      }
-      #token-runner-popup.light-theme .section-toggle {
-        color: #334155;
-        opacity: 0.85;
-      }
-      #token-runner-popup.light-theme .section-toggle.active {
-        color: #f97316;
-        background: rgba(249, 115, 22, 0.14);
-        opacity: 1;
-      }
-
-      #token-runner-popup *::-webkit-scrollbar { width: 4px; }
-      #token-runner-popup *::-webkit-scrollbar-thumb {
-        background: rgba(249, 115, 22, 0.35);
-        border-radius: 10px;
-      }
-
-      @media (max-width: 600px) {
-        #token-runner-popup {
-          width: 100%!important;
-          left: 0!important;
-          right: 0!important;
-          border-radius: 0!important;
-          height: calc(100dvh - 50px)!important;
-          max-height: calc(100dvh - 50px)!important;
-          top: 50px!important;
-          transform: translateX(100%)!important;
-        }
-        #token-runner-popup.active {
-          transform: translateX(0)!important;
-        }
-        .popup-content {
-          height: 100%!important;
-          max-height: calc(100dvh - 50px)!important;
-        }
-      }
-
-      .popup-content {
-        display: flex;
-        flex-direction: column;
-        height: 100%;
-        max-height: 100%;
-      }
-      .popup-header {
-        padding: 12px 14px;
-        background: #14161a;
-        border-bottom: 1px solid #2a2d35;
-        flex-shrink: 0;
-      }
-      .header-top {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 10px;
-      }
-      .popup-title {
-        font-weight: 800;
-        font-size: 15px;
-        color: #f97316;
-        line-height: 1.2;
-        letter-spacing: 0.3px;
-      }
-      .popup-subtitle {
-        font-size: 10px;
-        color: #9ca3af;
-        font-weight: 500;
-        letter-spacing: 0.2px;
-        margin-top: 1px;
-        display: block;
-      }
-      .popup-version-badge {
-        font-size: 10px;
-        font-weight: 700;
-        color: #fb923c;
-        background: rgba(249, 115, 22, 0.12);
-        border: 1px solid rgba(249, 115, 22, 0.28);
-        padding: 3px 8px;
-        border-radius: 999px;
-        font-family: monospace;
-      }
-      .token-tabs {
-        display: flex;
-        gap: 4px;
-        background: #1b1d22;
-        padding: 3px;
-        border-radius: 9px;
-        border: 1px solid #2a2d35;
-        flex-shrink: 0;
-      }
-      .token-tab {
-        flex: 1;
-        padding: 10px 8px;
-        font-size: 11px;
-        font-weight: 600;
-        color: #9ca3af;
-        background: transparent;
-        border: 1px solid transparent;
-        border-radius: 6px;
-        cursor: pointer;
-        transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 5px;
-        position: relative;
-      }
-      .token-tab:hover {
-        color: #f3f4f6;
-        background: rgba(255, 255, 255, 0.05);
-      }
-      .token-tab.active {
-        color: #f97316;
-        background: rgba(249, 115, 22, 0.16);
-        border-color: rgba(249, 115, 22, 0.35);
-        font-weight: 700;
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
-      }
-      .token-tab .ms { font-size: 16px; }
-      .token-tab-badge {
-        min-width: 14px;
-        height: 14px;
-        margin-left: 3px;
-        padding: 0 4px;
-        display: none;
-        align-items: center;
-        justify-content: center;
-        border-radius: 10px;
-        background: #ef4444;
-        color: #fff;
-        font-size: 9px;
-        font-weight: 800;
-        line-height: 1;
-      }
-      .token-tab-content {
-        display: none;
-        padding: 16px;
-        flex: 1;
-        overflow-y: auto;
-        overflow-x: hidden;
-        box-sizing: border-box;
-      }
-      .token-tab-content.active { display: block; }
-      .token-loading-bar {
-        position: absolute;
-        top: 0;
-        left: 0;
-        height: 2px;
-        width: 0;
-        background: linear-gradient(90deg, #f97316, #fb923c);
-        transition: width 0.3s;
-        z-index: 10;
-      }
-      .token-loading-bar.active { width: 100%; }
-      .toast {
-        position: fixed;
-        bottom: 100px;
-        left: 50%;
-        transform: translateX(-50%);
-        background: #1b1d22;
-        color: #f3f4f6;
-        padding: 8px 16px;
-        border-radius: 50px;
-        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.45);
-        z-index: 100000;
-        font-family: system-ui, sans-serif;
-        border: 1px solid #2a2d35;
-        font-size: 11px;
-        animation: toastIn 0.3s;
-      }
-      @keyframes toastIn {
-        from { transform: translate(-50%, 20px); opacity: 0; }
-        to { transform: translate(-50%, 0); opacity: 1; }
-      }
-      .token-button {
-        background: #f97316;
-        color: #ffffff;
-        border: 1px solid rgba(255, 255, 255, 0.1);
-        padding: 10px 16px;
-        border-radius: 8px;
-        cursor: pointer;
-        font-size: 12px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 8px;
-        transition: all 0.2s;
-        font-weight: 600;
-        text-decoration: none;
-      }
-      .token-button:hover {
-        background: #ea580c;
-        transform: translateY(-1px);
-        box-shadow: 0 4px 12px rgba(249, 115, 22, 0.25);
-      }
-      #token-runner-popup .forum-reply-parent,
-      #token-runner-popup .forum-reply-input {
-        background: #14161a !important;
-        color: #f3f4f6 !important;
-        border-color: #2a2d35 !important;
-      }
-      #token-runner-popup .forum-reply-parent option {
-        background: #14161a;
-        color: #f3f4f6;
-      }
-      #token-runner-popup.light-theme .forum-reply-parent,
-      #token-runner-popup.light-theme .forum-reply-input {
-        background: #ffffff !important;
-        color: #17202a !important;
-        border-color: #94a3b8 !important;
-      }
-      #token-runner-popup.light-theme .forum-reply-parent option {
-        background: #ffffff;
-        color: #17202a;
-      }
-      .mentari-spin {
-        display: inline-flex;
-        animation: mentari-spin 0.9s linear infinite;
-      }
-      @keyframes mentari-spin {
-        from { transform: rotate(0deg); }
-        to { transform: rotate(360deg); }
-      }
-      .switch {
-        position: relative;
-        display: inline-block;
-        width: 44px;
-        height: 22px;
-      }
-      .switch input { opacity: 0; width: 0; height: 0; }
-      .slider {
-        position: absolute;
-        cursor: pointer;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        background-color: #2a2d35;
-        transition: 0.3s;
-        border-radius: 22px;
-      }
-      .slider:before {
-        position: absolute;
-        content: "";
-        height: 16px;
-        width: 16px;
-        left: 3px;
-        bottom: 3px;
-        background-color: white;
-        transition: 0.3s;
-        border-radius: 50%;
-      }
-      input:checked + .slider { background-color: #f97316; }
-      input:checked + .slider:before { transform: translateX(22px); }
-      .data-card {
-        background: #1b1d22;
-        border-radius: 12px;
-        padding: 16px;
-        margin-bottom: 12px;
-        border: 1px solid #2a2d35;
-      }
-      .card { -webkit-tap-highlight-color: transparent; }
-      figure.image { margin-inline-start: 0px; margin-inline-end: 0px; }
-      .card-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 12px;
-      }
-      .card-title {
-        font-size: 14px;
-        font-weight: 700;
-        color: #f3f4f6;
-        margin: 0;
-        opacity: 0.95;
-      }
-      .student-item {
-        display: flex;
-        align-items: center;
-        gap: 12px;
-        padding: 10px;
-        background: rgba(255, 255, 255, 0.02);
-        border-radius: 10px;
-        margin-bottom: 8px;
-        transition: background 0.2s;
-      }
-      .student-item:hover { background: rgba(255, 255, 255, 0.04); }
-      .student-absen {
-        width: 24px;
-        height: 24px;
-        background: #f97316;
-        color: white;
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 10px;
-        font-weight: 800;
-        flex-shrink: 0;
-      }
-      .student-list-card,
-      .settings-section,
-      .settings-profile {
-        border: 1px solid #2a2d35;
-        border-radius: 10px;
-        overflow: hidden;
-        background: #14161a;
-        margin-bottom: 12px;
-      }
-      .student-list-header,
-      .settings-section-header {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        gap: 10px;
-        padding: 11px 12px;
-        background: #1b1d22;
-        border-bottom: 1px solid #2a2d35;
-      }
-      .student-list-title,
-      .settings-section-title {
-        display: flex;
-        align-items: center;
-        gap: 7px;
-        font-size: 13px;
-        font-weight: 700;
-      }
-      .student-list-title .ms,
-      .settings-section-title .ms {
-        color: #f97316;
-        font-size: 17px;
-      }
-      .student-count {
-        min-width: 20px;
-        padding: 2px 7px;
-        border: 1px solid rgba(249, 115, 22, 0.28);
-        border-radius: 5px;
-        background: rgba(249, 115, 22, 0.12);
-        color: #fb923c;
-        font-size: 10px;
-        font-weight: 800;
-        line-height: 1.2;
-        text-align: center;
-      }
-      .student-model-list {
-        display: flex;
-        flex-direction: column;
-        gap: 5px;
-        max-height: 580px;
-        overflow-y: auto;
-        padding: 8px;
-      }
-      .student-row {
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        padding: 8px 10px;
-        border-radius: 8px;
-        border: 1px solid #2a2d35;
-        background: #1b1d22;
-        transition: all 0.15s;
-      }
-      .student-row:hover {
-        background: rgba(255, 255, 255, 0.05);
-        border-color: rgba(249, 115, 22, 0.35);
-      }
-      .student-avatar {
-        width: 26px;
-        height: 26px;
-        flex-shrink: 0;
-        border-radius: 6px;
-        background: rgba(249, 115, 22, 0.14);
-        color: #fb923c;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 11px;
-        font-weight: 700;
-        border: 1px solid rgba(249, 115, 22, 0.25);
-      }
-      .student-info { flex: 1; min-width: 0; }
-      .student-name {
-        color: #f3f4f6;
-        font-size: 12px;
-        font-weight: 600;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-      }
-      .student-meta {
-        display: flex;
-        align-items: center;
-        gap: 6px;
-        flex-wrap: wrap;
-        margin-top: 1px;
-        color: #9ca3af;
-        font-size: 10px;
-      }
-      .student-nim {
-        font-family: monospace;
-        color: #fb923c;
-        font-weight: 600;
-      }
-      .student-rank {
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        min-width: 20px;
-        height: 20px;
-        padding: 0 6px;
-        border: 1px solid #2a2d35;
-        border-radius: 5px;
-        background: #14161a;
-        color: #9ca3af;
-        font-size: 9px;
-        font-weight: 700;
-        flex-shrink: 0;
-        text-align: center;
-      }
-      .settings-profile {
-        display: flex;
-        align-items: center;
-        gap: 12px;
-        padding: 11px 12px;
-        border-color: rgba(249, 115, 22, 0.25);
-        background: rgba(249, 115, 22, 0.06);
-      }
-      .settings-avatar {
-        width: 38px;
-        height: 38px;
-        flex-shrink: 0;
-        border-radius: 8px;
-        background: linear-gradient(135deg, #f97316, #fb923c);
-        color: #fff;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 17px;
-        font-weight: 900;
-      }
-      .settings-profile-info { min-width: 0; }
-      .settings-label {
-        color: #f97316;
-        font-size: 13px;
-        font-weight: 700;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-      }
-      .settings-desc {
-        color: #9ca3af;
-        font-size: 10px;
-        line-height: 1.5;
-      }
-      .settings-section { overflow: hidden; }
-      .settings-section-header { padding: 9px 12px; }
-      .settings-section-label {
-        color: #9ca3af;
-        font-size: 9px;
-        font-weight: 700;
-        letter-spacing: 0.8px;
-        text-transform: uppercase;
-      }
-      .settings-row {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        gap: 12px;
-        padding: 10px 12px;
-        border-bottom: 1px solid #2a2d35;
-        transition: background 0.15s;
-      }
-      .settings-row:last-child { border-bottom: 0; }
-      .settings-row-main { min-width: 0; }
-      .settings-row-title {
-        display: flex;
-        align-items: center;
-        gap: 7px;
-        color: #f3f4f6;
-        font-size: 12px;
-        font-weight: 600;
-      }
-      .settings-row-title .ms { color: #f97316; font-size: 16px; }
-      .settings-row-desc {
-        margin: 2px 0 0 23px;
-        color: #9ca3af;
-        font-size: 10px;
-      }
-      .settings-quick-links {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 8px;
-        margin-bottom: 12px;
-      }
-      #token-runner-popup .token-button.btn-outline {
-        background: #1b1d22;
-        border-color: #2a2d35;
-        color: #f3f4f6;
-      }
-      #token-runner-popup .token-button.btn-outline:hover {
-        background: rgba(249, 115, 22, 0.12);
-        border-color: rgba(249, 115, 22, 0.6);
-      }
-      .settings-model-list {
-        display: flex;
-        flex-direction: column;
-        gap: 5px;
-        max-height: 185px;
-        overflow-y: auto;
-        padding: 8px;
-      }
-      .settings-disclaimer {
-        padding: 8px 10px;
-        margin-bottom: 12px;
-        border-left: 2px solid #f97316;
-        border-radius: 6px;
-        background: rgba(249, 115, 22, 0.06);
-      }
-      .mentari-model-item {
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        padding: 8px 10px;
-        border-radius: 8px;
-        cursor: pointer;
-        border: 1px solid #2a2d35;
-        background: #1b1d22;
-        transition: all 0.15s;
-      }
-      .mentari-model-item:hover {
-        background: rgba(255, 255, 255, 0.06);
-      }
-      .mentari-model-item.is-active {
-        border-color: rgba(249, 115, 22, 0.6);
-        background: rgba(249, 115, 22, 0.1);
-      }
-      .mentari-model-item .model-state-dot {
-        width: 8px;
-        height: 8px;
-        border-radius: 50%;
-        flex-shrink: 0;
-        background: rgba(255, 255, 255, 0.2);
-      }
-      .mentari-model-item.is-active .model-state-dot {
-        background: #f97316;
-        box-shadow: 0 0 6px rgba(249, 115, 22, 0.7);
-      }
-      .mentari-model-item.is-limited .model-state-dot { background: #fb923c; }
-      .model-limit-badge {
-        display: inline-flex;
-        align-items: center;
-        margin-left: 6px;
-        padding: 2px 6px;
-        border: 1px solid rgba(251, 146, 60, 0.25);
-        border-radius: 5px;
-        background: rgba(251, 146, 60, 0.12);
-        color: #fb923c;
-        font-size: 9px;
-        font-weight: 700;
-        line-height: 1.2;
-        vertical-align: middle;
-      }
-
-      /* Detailed Forum Styles */
-      .course-card {
-        margin-bottom: 15px;
-        border: 1px solid #2a2d35;
-        border-radius: 10px;
-        overflow: hidden;
-        background: #14161a;
-      }
-      .course-card-header {
-        padding: 12px 16px;
-        background: #1b1d22;
-        border-bottom: 1px solid #2a2d35;
-      }
-      .course-card-header h2 {
-        margin: 0;
-        font-size: 14px;
-        color: #f97316;
-        font-weight: 700;
-      }
-      .course-card-code {
-        font-size: 10px;
-        opacity: 0.55;
-        margin-top: 4px;
-        display: block;
-      }
-      .course-chip-sks { background: rgba(56, 189, 248, 0.14); color: #38bdf8; }
-      .course-chip-day { background: rgba(34, 197, 94, 0.15); color: #4ade80; }
-      .course-chip-class { background: rgba(249, 115, 22, 0.15); color: #fb923c; }
-      .course-progress-value { color: #4ade80; }
-      .course-progress-track {
-        width: 100%;
-        height: 4px;
-        background: rgba(255, 255, 255, 0.08);
-        border-radius: 4px;
-        overflow: hidden;
-        position: relative;
-      }
-      .course-progress-bar {
-        height: 100%;
-        background: linear-gradient(90deg, #f97316, #22c55e);
-        border-radius: 4px;
-        transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-      }
-
-      /* Clean LMS Section Cards */
-      .section-card {
-        margin-bottom: 8px;
-        border: 1px solid #2a2d35;
-        border-radius: 8px;
-        overflow: hidden;
-        background: #1b1d22;
-        transition: border-color 0.2s ease;
-      }
-      .section-card:hover { border-color: rgba(249, 115, 22, 0.35); }
-      .section-card.active,
-      .section-card:has(.section-content.active) {
-        border-color: #f97316 !important;
-      }
-      .section-header {
-        padding: 8px 12px;
-        cursor: pointer;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        background: rgba(255, 255, 255, 0.03);
-        transition: background 0.2s ease;
-      }
-      .section-header:hover { background: rgba(255, 255, 255, 0.06); }
-      .section-header-left {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-      }
-      .section-header-icon {
-        width: 24px;
-        height: 24px;
-        border-radius: 6px;
-        background: rgba(249, 115, 22, 0.14);
-        color: #fb923c;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 12px;
-      }
-      .section-header h3 {
-        margin: 0;
-        font-size: 12px;
-        font-weight: 700;
-        color: #f3f4f6;
-        pointer-events: none;
-      }
-      .section-toggle {
-        width: 20px;
-        height: 20px;
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 11px;
-        transition: transform 0.25s ease, background 0.2s, color 0.2s;
-        opacity: 0.7;
-        pointer-events: none;
-        background: rgba(255, 255, 255, 0.04);
-      }
-      .section-toggle.active {
-        transform: rotate(180deg);
-        opacity: 1;
-        color: #f97316;
-        background: rgba(249, 115, 22, 0.16);
-      }
-      .section-content {
-        display: none;
-        padding: 8px;
-        background: #121316;
-        border-top: 1px solid #2a2d35;
-        gap: 6px;
-      }
-      .section-content.active {
-        display: flex;
-        flex-direction: column;
-      }
-
-      .item-row {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        padding: 8px 10px;
-        border-radius: 8px;
-        background: #1b1d22;
-        border: 1px solid #2a2d35;
-        text-decoration: none;
-        color: inherit;
-        transition: background 0.2s ease, border-color 0.2s ease;
-        cursor: pointer;
-        position: relative;
-      }
-      .item-row:hover {
-        background: rgba(255, 255, 255, 0.06) !important;
-        border-color: rgba(249, 115, 22, 0.4);
-      }
-      .item-row:hover .item-title { color: #fb923c; }
-      .item-icon {
-        width: 28px;
-        height: 28px;
-        border-radius: 6px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        flex-shrink: 0;
-        font-size: 13px;
-      }
-      .icon-forum { background: rgba(249, 115, 22, 0.15); color: #fb923c; }
-      .icon-quiz { background: rgba(34, 197, 94, 0.15); color: #4ade80; }
-      .icon-material { background: rgba(56, 189, 248, 0.14); color: #38bdf8; }
-      .item-info { flex: 1; overflow: hidden; }
-      .item-title {
-        font-size: 12px;
-        font-weight: 600;
-        display: block;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        transition: all 0.2s;
-        color: #f3f4f6;
-      }
-      .item-meta {
-        font-size: 10px;
-        opacity: 0.75;
-        margin-top: 2px;
-        display: flex;
-        align-items: center;
-        gap: 6px;
-      }
-      .item-status {
-        display: inline-flex;
-        align-items: center;
-        gap: 3px;
-        padding: 1px 6px;
-        border-radius: 5px;
-        font-size: 9px;
-        font-weight: 700;
-        letter-spacing: 0.02em;
-        text-transform: uppercase;
-        line-height: 1.2;
-      }
-      .status-done {
-        background: rgba(74, 222, 128, 0.12);
-        color: #4ade80;
-        border: 1px solid rgba(74, 222, 128, 0.25);
-      }
-      .status-todo {
-        background: rgba(251, 146, 60, 0.12);
-        color: #fb923c;
-        border: 1px solid rgba(251, 146, 60, 0.25);
-      }
-      .topic-badge {
-        display: flex;
-        align-items: center;
-        gap: 6px;
-        padding: 5px 8px;
-        background: rgba(249, 115, 22, 0.06);
-        border-radius: 6px;
-        font-size: 10px;
-        border: 1px solid rgba(249, 115, 22, 0.2);
-        color: #fb923c !important;
-        text-decoration: none !important;
-        transition: all 0.2s;
-        width: 100%;
-        box-sizing: border-box;
-        overflow: hidden;
-      }
-      .topic-badge:hover {
-        background: rgba(249, 115, 22, 0.14);
-        border-color: rgba(249, 115, 22, 0.4);
-      }
-      .ms {
-        font-family: 'Material Symbols Rounded';
-        font-size: 14px;
-        font-style: normal;
-        font-weight: normal;
-        line-height: 1;
-        display: inline-flex;
-        align-items: center;
-        vertical-align: middle;
-        user-select: none;
-        letter-spacing: normal;
-        text-transform: none;
-        white-space: nowrap;
-      }
-
-      /* Forum Content Reset */
-      .forum-html-preview {
-        all: revert;
-        font-family: inherit;
-        color: inherit;
-        font-size: 11px;
-        line-height: 1.5;
-      }
-      .forum-html-preview p { margin-bottom: 8px; }
-      .forum-html-preview ul, .forum-html-preview ol {
-        padding-left: 20px;
-        margin-bottom: 8px;
-      }
-      .forum-html-preview li { margin-bottom: 4px; }
-
-      /* Empty State */
-      .empty-state {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        padding: 56px 20px;
-        text-align: center;
-      }
-      .empty-icon {
-        font-size: 48px;
-        margin-bottom: 16px;
-        color: #f97316;
-        background: rgba(249, 115, 22, 0.08);
-        width: 76px;
-        height: 76px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        border-radius: 50%;
-        border: 1px solid rgba(249, 115, 22, 0.2);
-      }
-      .empty-title {
-        font-size: 15px;
-        font-weight: 700;
-        color: #f3f4f6;
-        margin-bottom: 6px;
-      }
-      .empty-desc {
-        font-size: 11px;
-        color: #9ca3af;
-        line-height: 1.6;
-        max-width: 240px;
-      }
-      #token-runner-popup.light-theme .empty-title { color: #1e293b; }
-      #token-runner-popup.light-theme .empty-desc { color: #64748b; }
-      #token-runner-popup.light-theme .empty-icon {
-        background: #fff7ed;
-        border-color: #fdba74;
-        color: #ea580c;
-      }
-    `,
   };
 
   const State = {
@@ -1198,6 +37,35 @@
     lecturerNotifications: [],
     isFetching: false,
     currentTab: "forum-tab",
+    isGuideOpen: false,
+    forumSearch: "",
+    forumTypeFilter: "all",
+    mhsCourseFilter: "all",
+    mhsSearch: "",
+  };
+
+  const ico = (name, size = 16, extraClass = "") =>
+    window.MentariPanelUI?.icon?.(name, size, extraClass) || "";
+
+  const cleanCourseTitle = (rawName) => {
+    const cleaned = String(rawName || "")
+      .split("#")[0]
+      .replace(/^\[\d+\]\s*/, "")
+      .replace(/\([^)]+\)/g, "")
+      .replace(/\[[^\]]+\]/g, "")
+      .trim();
+    return cleaned || String(rawName || "");
+  };
+
+  const getEventActionTarget = (event, selector = "[data-action]") => {
+    const raw = event?.target;
+    const el = raw?.nodeType === 1 ? raw : raw?.parentElement;
+    return el?.closest?.(selector) || null;
+  };
+
+  const getEventElement = (event) => {
+    const raw = event?.target;
+    return raw?.nodeType === 1 ? raw : raw?.parentElement || null;
   };
 
   const Utils = {
@@ -1220,12 +88,18 @@
       } catch (e) {}
     },
     escapeHtml(str) {
-      return String(str || "")
+      return String(str ?? "")
         .replace(/&/g, "&amp;")
         .replace(/</g, "&lt;")
         .replace(/>/g, "&gt;")
         .replace(/"/g, "&quot;")
         .replace(/'/g, "&#39;");
+    },
+    safeUrl(url) {
+      const val = String(url || "").trim();
+      if (!val || val === "#") return "#";
+      if (/^(https?:\/\/|\/(?!\/))/i.test(val)) return val;
+      return "#";
     },
     extractJwt(raw) {
       if (!raw) return null;
@@ -1298,41 +172,39 @@
       }
     },
     copy(text, msg) {
-      navigator.clipboard.writeText(text).then(() => this.toast(msg));
+      if (navigator.clipboard?.writeText) {
+        navigator.clipboard
+          .writeText(text)
+          .then(() => this.toast(msg))
+          .catch(() => {});
+      }
     },
     toast(msg) {
-      const t = document.createElement("div");
-      t.className = "toast";
-      t.style.cssText =
-        "position:fixed;bottom:50px;left:50%;transform:translateX(-50%);background:#1b1d22;color:#fb923c;padding:8px 16px;border-radius:50px;font-size:11px;z-index:100000;box-shadow:0 5px 15px rgba(0,0,0,0.5);border:1px solid rgba(249,115,22,0.3);animation:toastIn 0.3s;white-space:nowrap;";
-      t.textContent = msg;
-      document.body.appendChild(t);
-      setTimeout(() => t.remove(), 2500);
+      window.MentariPanelUI?.toast(msg, "info");
     },
     progressToast(msg) {
-      const id = "mentari-progress-toast";
-      let t = document.getElementById(id);
-      if (!t) {
-        t = document.createElement("div");
-        t.id = id;
-        t.className = "toast";
-        t.style.cssText =
-          "position:fixed;bottom:50px;left:50%;transform:translateX(-50%);background:#1b1d22;color:#fb923c;padding:9px 16px;border-radius:8px;font-size:11px;font-weight:600;z-index:100000;box-shadow:0 5px 15px rgba(0,0,0,0.5);border:1px solid rgba(249,115,22,0.35);animation:toastIn 0.3s;white-space:nowrap;";
-        document.body.appendChild(t);
-      }
-      t.innerHTML = `<span class="ms" style="font-size:15px;vertical-align:middle;margin-right:6px;">sync</span>${this.escapeHtml(msg)}`;
+      window.MentariPanelUI?.progressToast(msg);
     },
     closeProgressToast() {
-      document.getElementById("mentari-progress-toast")?.remove();
+      window.MentariPanelUI?.closeProgressToast();
     },
     successToast(msg) {
-      const t = document.createElement("div");
-      t.className = "toast";
-      t.style.cssText =
-        "position:fixed;bottom:50px;left:50%;transform:translateX(-50%);background:#14281d;color:#4ade80;padding:10px 16px;border-radius:8px;font-size:12px;font-weight:600;z-index:100000;box-shadow:0 5px 18px rgba(0,0,0,0.5);border:1px solid rgba(34,197,94,0.35);animation:toastIn 0.3s;white-space:nowrap;";
-      t.innerHTML = `<span class="ms" style="font-size:15px;vertical-align:middle;margin-right:5px;">check_circle</span>${this.escapeHtml(msg)}`;
-      document.body.appendChild(t);
-      setTimeout(() => t.remove(), 3000);
+      window.MentariPanelUI?.toast(msg, "success");
+    },
+    getThemeMode() {
+      try {
+        const raw = localStorage.getItem(Config.STORAGE_KEYS.THEME_MODE);
+        const cleaned = raw ? raw.replace(/^["']+|["']+$/g, "").trim() : "auto";
+        return cleaned === "dark" || cleaned === "light" ? cleaned : "auto";
+      } catch (e) {
+        return "auto";
+      }
+    },
+    applyTheme() {
+      const host = document.getElementById("token-runner-popup");
+      if (!host) return;
+      const mode = this.getThemeMode();
+      window.MentariPanelUI?.applyTheme(host, mode);
     },
     updateQuota(headers) {
       try {
@@ -1359,21 +231,6 @@
       if (num >= 1000000) return (num / 1000000).toFixed(1) + "M";
       if (num >= 1000) return (num / 1000).toFixed(1) + "K";
       return num;
-    },
-    injectMaterialIcons() {
-      if (document.getElementById("material-icons-css")) return;
-      const link = document.createElement("link");
-      link.id = "material-icons-css";
-      link.rel = "stylesheet";
-      link.href =
-        "https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20,400,0,0";
-      document.head.appendChild(link);
-    },
-    applyTheme() {
-      const container = document.getElementById("token-runner-popup");
-      if (!container) return;
-      const isLight = document.querySelector(".css-1yxmbwk") !== null;
-      container.classList.toggle("light-theme", isLight);
     },
   };
 
@@ -1469,179 +326,195 @@
   };
 
   const UIRenderer = {
+    getHost() {
+      return document.getElementById("token-runner-popup");
+    },
+    getRoot() {
+      return this.getHost()?.shadowRoot || null;
+    },
+    byId(id) {
+      return this.getRoot()?.getElementById(id) || null;
+    },
+    qs(sel) {
+      return this.getRoot()?.querySelector(sel) || null;
+    },
+    qsa(sel) {
+      return this.getRoot()?.querySelectorAll(sel) || [];
+    },
     injectStyles() {
-      if (document.getElementById("mentari-styles")) return;
-      const s = document.createElement("style");
-      s.id = "mentari-styles";
-      s.textContent = Config.STYLES;
-      document.head.appendChild(s);
+      this.createPopup();
+    },
+    renderGuideView() {
+      const guideView = this.byId("panel-guide-view");
+      if (
+        guideView &&
+        !guideView.dataset.rendered &&
+        typeof window.MentariGuide?.render === "function"
+      ) {
+        window.MentariGuide.render(guideView, {
+          version: APP_VERSION,
+          onBack: () => this.setGuideOpen(false),
+        });
+        guideView.dataset.rendered = "true";
+      }
+    },
+    setGuideOpen(open) {
+      State.isGuideOpen = Boolean(open);
+      const host = this.getHost();
+      window.MentariPanelUI?.setGuideOpen(host, State.isGuideOpen);
+      if (State.isGuideOpen) {
+        this.renderGuideView();
+      }
     },
     createPopup() {
-      if (document.getElementById("token-runner-popup")) return;
-      const p = document.createElement("div");
-      p.id = "token-runner-popup";
-      p.innerHTML = `
-        <div class="token-loading-bar"></div>
-        <div class="popup-content">
-          <div class="popup-header">
-            <div class="header-top">
-              <div style="display:flex; align-items:center; gap:10px;">
-                <img class="popup-logo-img" alt="Mentari Assistant" onerror="this.style.display='none'" style="width:32px; height:32px; border-radius:8px; object-fit:contain; flex-shrink:0; box-shadow:0 2px 6px rgba(0,0,0,0.4);">
-                <div style="display:flex; flex-direction:column;">
-                  <span class="popup-title">Mentari Assistant</span>
-                  <span class="popup-subtitle">by <a style="color: #9ca3af; text-decoration: none;" href="https://github.com/EdgePrompt" target="_blank">EdgePrompt</a></span>
-                </div>
-              </div>
-              <div style="display:flex; align-items:center; gap:8px;">
-                <span class="popup-version-badge">v${APP_VERSION}</span>
-                <button id="token-refresh-btn" class="token-button" title="Perbarui data" style="padding:6px 10px; border-radius:8px;"><span class="ms">refresh</span></button>
-              </div>
-            </div>
-            <div class="token-tabs">
-              <button class="token-tab active" data-tab="forum-tab" title="Forum"><span class="ms">forum</span><span id="forum-tab-badge" class="token-tab-badge"></span></button>
-              <button class="token-tab" data-tab="mhs-tab" title="Mahasiswa"><span class="ms">groups</span></button>
-              <button class="token-tab" data-tab="notif-tab" title="Notifikasi"><span class="ms">notifications</span></button>
-              <button class="token-tab" data-tab="set-tab" title="Pengaturan"><span class="ms">settings</span></button>
-            </div>
-          </div>
-          <div class="token-tab-content active" id="forum-tab-tab"></div>
-          <div class="token-tab-content" id="mhs-tab-tab"></div>
-          <div class="token-tab-content" id="notif-tab-tab"></div>
-          <div class="token-tab-content" id="set-tab-tab"></div>
-        </div>
-      `;
-      document.body.appendChild(p);
+      if (this.getHost()?.shadowRoot) return;
+      if (!window.MentariPanelUI) return;
 
-      const logoImg = p.querySelector(".popup-logo-img");
-      const icon128 = document.documentElement?.dataset?.mentariIcon128;
-      if (logoImg && icon128) logoImg.src = icon128;
-      else if (logoImg) logoImg.style.display = "none";
-
-      this.initTabs();
-      document.getElementById("token-refresh-btn").onclick = (e) => {
-        e.stopPropagation();
-        App.refreshData(true);
-      };
-    },
-    initTabs() {
-      const tabs = document.querySelectorAll(".token-tab");
-      tabs.forEach((t) => {
-        t.onclick = (e) => {
-          e.stopPropagation();
-          document
-            .querySelectorAll(".token-tab, .token-tab-content")
-            .forEach((el) => el.classList.remove("active"));
-          t.classList.add("active");
-          const panel = document.getElementById(t.dataset.tab + "-tab");
-          if (panel) panel.classList.add("active");
-          if (t.dataset.tab === "notif-tab") {
+      window.MentariPanelUI.createHost({
+        appVersion: APP_VERSION,
+        onRefresh: () => App.refreshData(true),
+        onClose: () => window.toggleTokenPopup?.(),
+        onToggleGuide: () => this.setGuideOpen(!State.isGuideOpen),
+        onTabChange: (tabId) => {
+          State.isGuideOpen = false;
+          State.currentTab = tabId;
+          if (tabId === "notif-tab") {
             App.syncLecturerNotifications(State.courseDataList);
           }
-        };
+        },
       });
+      Utils.applyTheme();
+      this.renderGuideView();
     },
     setLoading(active) {
-      const bar = document.querySelector(".token-loading-bar");
-      if (bar) bar.classList.toggle("active", Boolean(active));
+      window.MentariPanelUI?.setLoading(this.getHost(), active);
     },
-    updatePosition() {
-      // Disabled for fixed position consistency across assistant panels
-    },
+    updatePosition() {},
   };
 
   const ForumRenderer = {
     render(data) {
-      const el = document.getElementById("forum-tab-tab");
+      const el = UIRenderer.byId("forum-tab-tab");
       if (!el) return;
 
+      const list = Array.isArray(data) ? data : [];
+      let coursesHtml = "";
+
+      if (list.length) {
+        const days = [
+          "Minggu",
+          "Senin",
+          "Selasa",
+          "Rabu",
+          "Kamis",
+          "Jumat",
+          "Sabtu",
+        ];
+        const getDay = (name) => {
+          const m = String(name || "").match(/\(([^)]+)\)/);
+          const idx = m ? days.indexOf(m[1]) : -1;
+          return idx === -1 ? 7 : idx;
+        };
+        const sortedData = [...list].sort(
+          (a, b) =>
+            getDay(a.coursename || a.nama_mata_kuliah) -
+            getDay(b.coursename || b.nama_mata_kuliah),
+        );
+        coursesHtml = sortedData.map((course) => this.renderCourse(course)).join("");
+      }
+
+      const hasCourses = Boolean(coursesHtml.trim());
+
       let html = `
-        <div style="margin-bottom:14px;">
-          <a href="https://my.unpam.ac.id/presensi/" target="_blank" style="
-            display:flex; align-items:center; gap:12px;
-            padding:12px 14px;
-            background: rgba(34, 197, 94, 0.08);
-            border: 1px solid rgba(34, 197, 94, 0.25);
-            border-radius:10px;
-            text-decoration:none;
-            transition: background 0.2s, border-color 0.2s;
-          " onmouseover="this.style.background='rgba(34,197,94,0.14)'; this.style.borderColor='rgba(34,197,94,0.4)'"
-             onmouseout="this.style.background='rgba(34,197,94,0.08)'; this.style.borderColor='rgba(34,197,94,0.25)'">
-            <div style="width:36px; height:36px; flex-shrink:0; background:rgba(34,197,94,0.15); border-radius:8px; display:flex; align-items:center; justify-content:center; color:#22c55e;">
-              <span class="ms" style="font-size:20px;">fact_check</span>
-            </div>
-            <div style="flex:1; min-width:0;">
-              <div style="font-size:12px; font-weight:700; color:#22c55e; margin-bottom:2px;">Halaman Presensi Mahasiswa</div>
-              <div style="font-size:10px; color:#4ade80; opacity:0.8; display:flex; align-items:center; gap:4px;">
-                <span class="ms" style="font-size:11px;">link</span> my.unpam.ac.id/presensi
-              </div>
-            </div>
-            <span class="ms" style="font-size:16px; color:#22c55e; opacity:0.65; flex-shrink:0;">open_in_new</span>
+        <div class="summary-bar">
+          <div class="summary-status">
+            ${ico("tasks", 15)}
+            <span id="forum-summary-text">${list.length ? "Memuat status..." : "Belum ada data mata kuliah"}</span>
+          </div>
+          <a href="https://my.unpam.ac.id/presensi/" target="_blank" rel="noopener noreferrer" class="btn btn-sm btn-success">
+            ${ico("presensi", 13)}<span>Presensi</span>${ico("external", 12)}
           </a>
         </div>
       `;
 
-      if (!data.length) {
+      if (!list.length) {
         html += `
           <div class="empty-state">
-            <div class="empty-icon"><span class="ms" style="font-size:40px;">cloud_sync</span></div>
+            <div class="empty-icon">${ico("refresh", 28)}</div>
             <div class="empty-title">Data Kosong</div>
             <div class="empty-desc">Pilih mata kuliah di Mentari agar data forum muncul di sini.</div>
           </div>
         `;
+      } else if (!hasCourses) {
+        html += `
+          <div class="empty-state">
+            <div class="empty-icon" style="color:var(--success-text);background:var(--success-soft);">${ico("check", 28)}</div>
+            <div class="empty-title">Semua Beres!</div>
+            <div class="empty-desc">Tidak ada forum diskusi atau kuis yang menunggu dikerjakan saat ini.</div>
+          </div>
+        `;
       } else {
-        const sortedData = [...data].sort((a, b) => {
-          const days = [
-            "Minggu",
-            "Senin",
-            "Selasa",
-            "Rabu",
-            "Kamis",
-            "Jumat",
-            "Sabtu",
-          ];
-          const getDay = (name) => {
-            const m = String(name || "").match(/\(([^)]+)\)/);
-            return m ? days.indexOf(m[1]) : 7;
-          };
-          return getDay(a.coursename) - getDay(b.coursename);
-        });
-
-        const coursesHtml = sortedData
-          .map((course) => this.renderCourse(course))
-          .join("");
-
-        if (!coursesHtml.trim()) {
-          html += `
-            <div class="empty-state">
-              <div class="empty-icon" style="color: #22c55e; background: rgba(34, 197, 94, 0.08); border-color: rgba(34, 197, 94, 0.2);">
-                <span class="ms" style="font-size:40px;">task_alt</span>
-              </div>
-              <div class="empty-title">Semua Beres!</div>
-              <div class="empty-desc">Tidak ada forum diskusi atau kuis yang menunggu dikerjakan saat ini.</div>
+        const filters = [
+          { key: "all", label: "Semua" },
+          { key: "forum", label: "Forum" },
+          { key: "quiz", label: "Kuis" },
+          { key: "kuesioner", label: "Kuesioner" },
+        ];
+        html += `
+          <div class="toolbar-stack">
+            <div class="search-box">
+              <span class="search-ico">${ico("search", 14)}</span>
+              <input type="text" id="forum-search-input" class="search-input" placeholder="Cari matkul atau pertemuan..." value="${Utils.escapeHtml(State.forumSearch)}" autocomplete="off" />
+              <button type="button" id="forum-search-clear" class="search-clear${State.forumSearch ? " visible" : ""}" data-action="clear-forum-search" aria-label="Hapus pencarian" title="Hapus pencarian">${ico("close", 13)}</button>
             </div>
-          `;
-        } else {
-          html += coursesHtml;
-        }
+            <div class="filter-chips" role="group" aria-label="Filter tipe tugas">
+              ${filters
+                .map((f) => {
+                  const active = State.forumTypeFilter === f.key;
+                  return `<button type="button" class="chip-btn${active ? " active" : ""}" data-action="filter-forum-type" data-filter="${f.key}" aria-pressed="${active ? "true" : "false"}">${f.label}</button>`;
+                })
+                .join("")}
+            </div>
+          </div>
+          ${coursesHtml}
+          <div id="forum-empty-filter" class="empty-state" hidden>
+            <div class="empty-icon">${ico("search", 26)}</div>
+            <div class="empty-title">Tidak Ada Hasil Cocok</div>
+            <div class="empty-desc">Coba ubah kata kunci pencarian atau pilih filter lain.</div>
+          </div>
+        `;
       }
 
       el.innerHTML = html;
-      this.initInteractions(data);
+      this.initInteractions(list);
       this.updateForumBadge();
+      if (hasCourses) {
+        this.applyFilters();
+      }
     },
 
     updateForumBadge() {
-      const badge = document.getElementById("forum-tab-badge");
-      const forum = document.getElementById("forum-tab-tab");
-      if (!badge || !forum) return;
+      const badge = UIRenderer.byId("forum-tab-badge");
+      const forum = UIRenderer.byId("forum-tab-tab");
+      const summaryText = UIRenderer.byId("forum-summary-text");
+      if (!forum) return;
 
       const incompleteMeetings = Array.from(
         forum.querySelectorAll(".section-card"),
       ).filter((section) => section.querySelector(".status-todo"));
 
       const count = incompleteMeetings.length;
-      badge.textContent = count ? String(count) : "";
-      badge.style.display = count ? "inline-flex" : "none";
+      if (badge) {
+        badge.textContent = count ? String(count) : "";
+        badge.style.display = count ? "inline-flex" : "none";
+      }
+      if (summaryText) {
+        summaryText.textContent = !State.courseDataList.length
+          ? "Belum ada data mata kuliah"
+          : count > 0
+            ? `${count} pertemuan menunggu`
+            : "Semua tugas beres";
+      }
     },
 
     renderCourse(c) {
@@ -1692,7 +565,7 @@
         return true;
       });
 
-      const rawName = c.coursename || "";
+      const rawName = c.coursename || c.nama_mata_kuliah || c.kode_course || "";
       const sksMatch = rawName.match(/^\[(\d+)\]/);
       const sks = sksMatch ? sksMatch[1] : null;
 
@@ -1702,14 +575,7 @@
       const kelasMatch = rawName.match(/#\s*([^\s(]+)/);
       const kelas = kelasMatch ? kelasMatch[1] : null;
 
-      let courseTitle = rawName
-        .split("#")[0]
-        .replace(/^\[\d+\]\s*/, "")
-        .replace(/\([^)]+\)/g, "")
-        .replace(/\[[^\]]+\]/g, "")
-        .trim();
-
-      if (!courseTitle) courseTitle = rawName;
+      const courseTitle = cleanCourseTitle(rawName);
 
       const validSectionsHtml = sections
         .map((s, idx) => this.renderSection(s, c, idx))
@@ -1718,31 +584,40 @@
 
       if (!validSectionsHtml.trim()) return "";
 
+      const courseSearch = [
+        courseTitle,
+        c.coursename,
+        c.nama_mata_kuliah,
+        c.kode_course,
+        kelas,
+        hari,
+      ]
+        .filter(Boolean)
+        .join(" ");
+
       return `
-        <div class="course-card" style="margin-bottom: 14px;">
-          <div class="course-card-header" style="padding: 12px 14px; display: flex; flex-direction: column; gap: 8px;">
-            <div style="display: flex; flex-direction: row; justify-content: space-between; align-items: flex-start; gap: 10px; width: 100%;">
-              <div style="flex: 1; display: flex; flex-direction: column; gap: 4px;">
-                <p class="course-title" style="margin: 0; font-weight: 700; font-size: 0.95rem; line-height: 1.35;">${Utils.escapeHtml(courseTitle)}</p>
-                <div style="display: flex; flex-direction: row; align-items: center; gap: 6px; flex-wrap: wrap;">
-                  ${sks ? `<span class="course-chip course-chip-sks" style="display: inline-flex; align-items: center; gap: 4px; padding: 2px 7px; border-radius: 6px; font-size: 0.7rem; font-weight: 500;"><span class="ms" style="font-size:11px;">auto_stories</span> ${Utils.escapeHtml(sks)} SKS</span>` : ""}
-                  ${hari ? `<span class="course-chip course-chip-day" style="display: inline-flex; align-items: center; gap: 4px; padding: 2px 7px; border-radius: 6px; font-size: 0.7rem; font-weight: 500;"><span class="ms" style="font-size:11px;">calendar_month</span> ${Utils.escapeHtml(hari)}</span>` : ""}
-                  ${kelas ? `<span class="course-chip course-chip-class" style="display: inline-flex; align-items: center; gap: 4px; padding: 2px 7px; border-radius: 6px; font-size: 0.7rem; font-weight: 500;"><span class="ms" style="font-size:11px;">school</span> Kelas ${Utils.escapeHtml(kelas)}</span>` : ""}
+        <div class="course-card" data-search="${Utils.escapeHtml(courseSearch)}">
+          <div class="course-card-header">
+            <div class="course-header-top">
+              <div style="flex:1; min-width:0;">
+                <h2 class="course-title">${Utils.escapeHtml(courseTitle)}</h2>
+                <div class="course-meta-chips">
+                  ${sks ? `<span class="course-chip course-chip-sks">${ico("book", 11)} ${Utils.escapeHtml(sks)} SKS</span>` : ""}
+                  ${hari ? `<span class="course-chip course-chip-day">${ico("presensi", 11)} ${Utils.escapeHtml(hari)}</span>` : ""}
+                  ${kelas ? `<span class="course-chip course-chip-class">${ico("groups", 11)} Kelas ${Utils.escapeHtml(kelas)}</span>` : ""}
                 </div>
-                <span class="course-code" style="opacity: 0.55; font-size: 0.68rem; margin-top: 1px;">Kode Course: ${Utils.escapeHtml(c.kode_course)}</span>
+                <span class="course-code">Kode Course: ${Utils.escapeHtml(c.kode_course)}</span>
               </div>
-              <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 2px; flex-shrink: 0;">
-                <span class="course-progress-value" style="font-size: 0.9rem; font-weight: 800; font-family: monospace;">${progressPercent}%</span>
-                <span class="course-progress-label" style="font-size: 0.68rem; opacity: 0.6;">Pertemuan ${lastCompletedSort} / ${totalSorts}</span>
+              <div class="course-progress-box">
+                <span class="course-progress-value">${progressPercent}%</span>
+                <span class="course-progress-label">Pertemuan ${lastCompletedSort} / ${totalSorts}</span>
               </div>
             </div>
-            <div style="width: 100%; display: flex; flex-direction: column; gap: 4px;">
-              <div class="course-progress-track">
-                <div class="course-progress-bar" style="width: ${progressPercent}%;"></div>
-              </div>
+            <div class="course-progress-track">
+              <div class="course-progress-bar" style="width: ${progressPercent}%;"></div>
             </div>
           </div>
-          <div class="course-card-body" style="padding: 10px; padding-bottom: 2px; border-top: 1px solid #2a2d35; width: 100%; box-sizing: border-box;">
+          <div class="course-card-body">
             ${validSectionsHtml}
           </div>
         </div>
@@ -1759,27 +634,29 @@
 
       const sectionId = `sect-${c.kode_course}-${idx}`;
       const sectionUrl = `https://mentari.unpam.ac.id/u-courses/${c.kode_course}?accord_pertemuan=${s.kode_section}`;
+      const sectionSearch = [s.nama_section, s.kode_section]
+        .filter(Boolean)
+        .join(" ");
+
       return `
-        <div class="section-card">
-          <div class="section-header" data-target="${sectionId}">
+        <div class="section-card" data-search="${Utils.escapeHtml(sectionSearch)}">
+          <button type="button" class="section-header" data-action="toggle-section" data-target="${Utils.escapeHtml(sectionId)}" aria-expanded="false">
             <div class="section-header-left">
-              <div class="section-header-icon"><span class="ms">import_contacts</span></div>
-              <h3>${Utils.escapeHtml(s.nama_section)}</h3>
+              <span class="section-header-icon">${ico("book", 13)}</span>
+              <span class="section-header-title">${Utils.escapeHtml(s.nama_section)}</span>
             </div>
-            <div style="display: flex; align-items: center; gap: 8px;">
-              <span class="section-toggle"><span class="ms">expand_more</span></span>
-            </div>
-          </div>
-          <div class="section-content" id="${sectionId}">
-            <a href="${sectionUrl}" class="item-row" style="background: rgba(249,115,22,0.06); border-color: rgba(249,115,22,0.22);" onclick="event.stopPropagation()">
-              <div class="item-icon" style="background: rgba(249,115,22,0.15); color: #f97316;">
-                <span class="ms">folder_open</span>
+            <span class="section-toggle">${ico("chevronDown", 14)}</span>
+          </button>
+          <div class="section-content" id="${Utils.escapeHtml(sectionId)}">
+            <a href="${Utils.escapeHtml(sectionUrl)}" class="item-row">
+              <div class="item-main">
+                <div class="item-icon icon-forum">${ico("folder", 14)}</div>
+                <div class="item-info">
+                  <div class="item-title" style="color:var(--accent);">Buka Pertemuan</div>
+                  <div class="item-meta"><span>Buka langsung di Mentari UNPAM</span></div>
+                </div>
+                <div class="item-actions" style="color:var(--accent);">${ico("chevronRight", 14)}</div>
               </div>
-              <div class="item-info">
-                <span class="item-title" style="color: #fb923c;">Buka Pertemuan</span>
-                <div class="item-meta"><span>Buka langsung di Mentari UNPAM</span></div>
-              </div>
-              <span class="ms" style="opacity:0.7; font-size:14px; flex-shrink:0; color:#f97316;">chevron_right</span>
             </a>
             ${itemsHtml}
           </div>
@@ -1809,9 +686,9 @@
       let cardUrl = "#";
       let actionUrl = "#";
       let iconClass = "icon-material";
-      let icon = "description";
+      let iconName = "doc";
       let actionLabel = "Buka";
-      let actionIcon = "open_in_new";
+      let actionIcon = "external";
 
       if (isQuiz) {
         cardUrl = i.id
@@ -1821,30 +698,30 @@
           ? `https://mentari.unpam.ac.id/u-courses/${c.kode_course}/exam/${i.id}`
           : "#";
         iconClass = "icon-quiz";
-        icon = "checklist";
+        iconName = "quiz";
         actionLabel = "Mulai Quiz";
-        actionIcon = "play_arrow";
+        actionIcon = "play";
       } else if (isForum) {
         cardUrl = i.id
           ? `https://mentari.unpam.ac.id/u-courses/${c.kode_course}/forum/${i.id}`
           : "#";
         actionUrl = cardUrl;
         iconClass = "icon-forum";
-        icon = "forum";
+        iconName = "forum";
         actionLabel = "Buka Forum";
-        actionIcon = "open_in_new";
+        actionIcon = "external";
       } else if (isMaterial) {
         cardUrl = `https://mentari.unpam.ac.id/u-courses/${c.kode_course}`;
         if (i.link) {
-          actionUrl = i.link;
+          actionUrl = Utils.safeUrl(i.link);
           actionLabel = "Buka Link";
-          actionIcon = "open_in_new";
+          actionIcon = "external";
         } else if (i.file) {
-          actionUrl = `https://mentari.unpam.ac.id/api/file/${i.file}`;
+          actionUrl = `https://mentari.unpam.ac.id/api/file/${encodeURIComponent(i.file)}`;
           actionLabel = "Download";
           actionIcon = "download";
         }
-        icon = this.getMaterialIcon(i.kode_template);
+        iconName = this.getMaterialIcon(i.kode_template);
       } else if (isKuesioner) {
         cardUrl =
           c.kode_course && s.kode_section
@@ -1852,83 +729,95 @@
             : "#";
         actionUrl = cardUrl;
         iconClass = "icon-quiz";
-        icon = "bar_chart";
+        iconName = "kuesioner";
         actionLabel = "Isi Kuesioner Otomatis";
         actionIcon = "bolt";
       } else if (isTugas) {
         iconClass = "icon-material";
-        icon = "assignment";
+        iconName = "doc";
         actionLabel = "Lihat Tugas";
-        if (i.link) actionUrl = i.link;
+        if (i.link) actionUrl = Utils.safeUrl(i.link);
         else if (i.file)
-          actionUrl = `https://mentari.unpam.ac.id/api/file/${i.file}`;
+          actionUrl = `https://mentari.unpam.ac.id/api/file/${encodeURIComponent(i.file)}`;
       }
 
-      const statusClass = i.completion ? "status-done" : "status-todo";
-      const statusText = i.completion ? "Selesai" : "Belum";
+      const itemType = isForum
+        ? "forum"
+        : isQuiz
+          ? "quiz"
+          : isKuesioner
+            ? "kuesioner"
+            : isTugas
+              ? "tugas"
+              : "material";
+
       const isFinished = i.completion === true;
+      const statusClass = isFinished ? "status-done" : "status-todo";
+      const statusText = isFinished ? "Selesai" : "Belum";
 
       const btnIcon = isFinished ? "lock" : actionIcon;
       const btnTitle = isFinished ? "Sudah Selesai" : actionLabel;
-      const btnStyle = isFinished
-        ? "width:28px; height:28px; padding:0; background:rgba(255,255,255,0.08); color:rgba(255,255,255,0.35); border-radius:6px; cursor:not-allowed;"
-        : `width:28px; height:28px; padding:0; background: ${actionLabel === "Download" ? "#22c55e" : isQuiz || isKuesioner ? "#ea580c" : "#f97316"}; border-radius:6px;`;
+
+      let rightActionHtml = "";
+      if (isKuesioner) {
+        rightActionHtml = `<button type="button" class="btn btn-icon-sq ${isFinished ? "" : "btn-primary"} kuesioner-submit-btn" title="${Utils.escapeHtml(btnTitle)}" ${isFinished ? "disabled" : ""} data-action="submit-kuesioner" data-course-code="${Utils.escapeHtml(c.kode_course)}" data-section-code="${Utils.escapeHtml(s.kode_section)}">${ico(btnIcon, 14)}</button>`;
+      } else if (actionUrl !== "#") {
+        if (isFinished) {
+          rightActionHtml = `<button type="button" class="btn btn-icon-sq" title="${Utils.escapeHtml(btnTitle)}" disabled>${ico("lock", 14)}</button>`;
+        } else {
+          const variantClass =
+            actionLabel === "Download" ? "btn-success" : "btn-primary";
+          rightActionHtml = `<a href="${Utils.escapeHtml(actionUrl)}" target="_blank" rel="noopener noreferrer" class="btn btn-icon-sq ${variantClass}" title="${Utils.escapeHtml(btnTitle)}">${ico(btnIcon, 14)}</a>`;
+        }
+      }
 
       const forumKonten = isForum && i.konten ? i.konten.trim() : "";
       const forumKontenId = `fk-${i.id}`;
+      const itemSearch = [i.judul, itemType].filter(Boolean).join(" ");
 
       return `
-        <div class="item-row ${i.completion ? "completed-item" : ""}"
-          onclick="if(event.target.closest('a,button,input,select,textarea,form')) return; window.location.href='${cardUrl}';"
-          style="flex-direction:column; align-items:stretch; padding:0; overflow:hidden; ${i.completion ? "opacity:0.8;" : "background: rgba(255, 255, 255, 0.04);"}" data-name="${Utils.escapeHtml(i.judul)}">
-          <div style="display:flex; align-items:center; gap:10px; padding:10px;">
-            <div class="item-icon ${iconClass}"><span class="ms">${icon}</span></div>
+        <div class="item-row${isFinished ? " completed-item" : ""}"
+          data-item="true"
+          data-type="${itemType}"
+          data-name="${Utils.escapeHtml(i.judul)}"
+          data-search="${Utils.escapeHtml(itemSearch)}"
+          ${cardUrl !== "#" ? `data-action="open-url" data-url="${Utils.escapeHtml(cardUrl)}"` : ""}>
+          <div class="item-main">
+            <div class="item-icon ${iconClass}">${ico(iconName, 15)}</div>
             <div class="item-info">
-              <span class="item-title" style="${i.completion ? "text-decoration: line-through; opacity: 0.6;" : ""}">${Utils.escapeHtml(i.judul)}</span>
+              <div class="item-title">${Utils.escapeHtml(i.judul)}</div>
               <div class="item-meta">
-                <span class="item-status ${statusClass}"><span class="ms" style="font-size:10px;">${i.completion ? "check_circle" : "schedule"}</span> ${statusText}</span>
-                ${i.setting_quiz?.duration ? `<span style="opacity:0.7;"><span class="ms">hourglass_top</span> ${i.setting_quiz.duration} min</span>` : ""}
-                ${isQuiz ? `<span class="quiz-participant-status" data-quiz-id="${i.id}" style="opacity:0.75;">Memuat hasil...</span>` : ""}
+                <span class="item-status ${statusClass}">${ico(isFinished ? "check" : "clock", 10)} ${statusText}</span>
+                ${i.setting_quiz?.duration ? `<span>${ico("clock", 11)} ${Utils.escapeHtml(i.setting_quiz.duration)} min</span>` : ""}
+                ${isQuiz ? `<span class="quiz-participant-status" data-quiz-id="${Utils.escapeHtml(i.id)}">Memuat hasil...</span>` : ""}
               </div>
             </div>
-            <div style="display:flex; gap:6px; flex-shrink:0;">
+            <div class="item-actions">
               ${
                 forumKonten
-                  ? `
-                <button class="token-button" title="Lihat Konten Forum" onclick="event.stopPropagation(); const el=document.getElementById('${forumKontenId}'); el.style.display=el.style.display==='none'?'block':'none';" style="height:26px; padding:0 8px; background: #2a2d35; color: #f3f4f6; border-radius:6px; font-size:11px; display:inline-flex; align-items:center; gap:4px;">
-                  <span class="ms" style="font-size:14px;">menu_book</span> Konten
-                </button>`
+                  ? `<button type="button" class="btn btn-sm" title="Lihat Konten Forum" data-action="toggle-forum-content" data-target="${Utils.escapeHtml(forumKontenId)}">${ico("book", 13)}<span>Konten</span></button>`
                   : ""
               }
               ${
                 isForum && i.id
-                  ? `<button type="button" class="token-button forum-reply-btn" title="Balas Forum" data-forum-id="${i.id}" onclick="event.stopPropagation();" style="height:26px; padding:0 10px; background:#22c55e; color: #090b0d; border-radius:6px; font-size:11px; font-weight:700; display:inline-flex; align-items:center; gap:4px;"><span class="ms" style="font-size:13px;">reply</span> Balas</button>`
+                  ? `<button type="button" class="btn btn-sm btn-success forum-reply-btn" title="Balas Forum" data-action="open-forum-reply" data-forum-id="${Utils.escapeHtml(i.id)}">${ico("reply", 13)}<span>Balas</span></button>`
                   : ""
               }
-              ${
-                isKuesioner
-                  ? `<button type="button" class="token-button kuesioner-submit-btn" title="${btnTitle}" ${isFinished ? 'disabled="disabled"' : ""} data-course-code="${c.kode_course}" data-section-code="${s.kode_section}" onclick="event.stopPropagation();" style="${btnStyle}"><span class="ms" style="font-size:15px;">${btnIcon}</span></button>`
-                  : actionUrl !== "#"
-                    ? `<a href="${isFinished ? "#" : actionUrl}" target="_blank" rel="noopener noreferrer" class="token-button" title="${btnTitle}" ${isFinished ? 'onclick="event.preventDefault(); event.stopPropagation();"' : 'onclick="event.stopPropagation();"'} style="${btnStyle}"><span class="ms" style="font-size:15px;">${btnIcon}</span></a>`
-                    : ""
-              }
+              ${rightActionHtml}
             </div>
           </div>
           ${
             forumKonten
-              ? `
-            <div id="${forumKontenId}" class="forum-html-preview" style="display:none; padding:10px; border-top:1px solid #2a2d35; color:rgba(255,255,255,0.82); background:rgba(0,0,0,0.45);">
-              ${this.sanitizeForumHtml(forumKonten)}
-            </div>`
+              ? `<div id="${Utils.escapeHtml(forumKontenId)}" class="forum-html-preview" hidden>${this.sanitizeForumHtml(forumKonten)}</div>`
               : ""
           }
           ${
             isForum && i.id
               ? `
-            <div style="display:flex; justify-content:flex-end; padding:4px 10px 0 10px;">
-              <span class="forum-reply-count" data-forum-id="${i.id}" style="font-size:11px; opacity:0.85; font-weight:600; color:#fb923c; display:inline-flex; align-items:center; gap:3px;"><span class="ms" style="font-size:12px;">reply</span> Reply Kamu: -</span>
+            <div style="display:flex; justify-content:flex-end; padding:0 10px 4px;">
+              <span class="forum-reply-count" data-forum-id="${Utils.escapeHtml(i.id)}" style="font-size:10.5px; font-weight:600; color:var(--accent); display:inline-flex; align-items:center; gap:3px;">${ico("reply", 12)} Reply Kamu: -</span>
             </div>
-            <div class="topics-container" data-forum-id="${i.id}" data-course-code="${c.kode_course}" style="padding:0 8px 8px;"></div>`
+            <div class="topics-container" data-forum-id="${Utils.escapeHtml(i.id)}" data-course-code="${Utils.escapeHtml(c.kode_course)}"></div>`
               : ""
           }
         </div>
@@ -1938,115 +827,234 @@
     getMaterialIcon(type) {
       const map = {
         BUKU_ISBN: "book",
-        VIDEO_AJAR: "play_circle",
-        POWER_POINT: "slideshow",
-        ARTIKEL_RISET: "article",
-        MATERI_LAINNYA: "folder_open",
+        VIDEO_AJAR: "video",
+        POWER_POINT: "doc",
+        ARTIKEL_RISET: "doc",
+        MATERI_LAINNYA: "folder",
       };
-      return map[type] || "description";
+      return map[type] || "doc";
     },
 
-    initInteractions(data) {
-      document.querySelectorAll(".section-header").forEach((header) => {
-        header.onclick = (e) => {
-          e.stopPropagation();
-          const target = document.getElementById(header.dataset.target);
-          const toggle = header.querySelector(".section-toggle");
-          if (target) {
-            const isVisible = target.classList.contains("active");
-            if (isVisible) {
-              target.classList.remove("active");
-              toggle?.classList.remove("active");
-            } else {
-              document
-                .querySelectorAll(".section-content.active")
-                .forEach((openSection) => {
-                  openSection.classList.remove("active");
-                  openSection
-                    .closest(".section-card")
-                    ?.querySelector(".section-toggle")
-                    ?.classList.remove("active");
-                });
-              target.classList.add("active");
-              toggle?.classList.add("active");
-              this.loadSectionData(target);
-            }
-          }
-        };
-      });
+    bindDelegatedEvents(el) {
+      if (!el || el.dataset.delegated === "true") return;
+      el.dataset.delegated = "true";
 
-      document.querySelectorAll(".forum-reply-btn").forEach((button) => {
-        button.onclick = (e) => {
-          e.stopPropagation();
-          const container = document.querySelector(
-            `.topics-container[data-forum-id="${button.dataset.forumId}"]`,
+      el.addEventListener("input", (e) => {
+        const target = getEventElement(e);
+        if (target?.id === "forum-search-input") {
+          State.forumSearch = target.value || "";
+          UIRenderer.byId("forum-search-clear")?.classList.toggle(
+            "visible",
+            Boolean(State.forumSearch),
           );
-          if (container) this.toggleForumReplyForm(container);
-        };
+          this.applyFilters();
+        }
       });
 
-      document.querySelectorAll(".kuesioner-submit-btn").forEach((button) => {
-        button.onclick = async (e) => {
+      el.addEventListener("click", (e) => {
+        const actionEl = getEventActionTarget(e, "[data-action]");
+        if (!actionEl) return;
+        const action = actionEl.dataset.action;
+
+        if (action === "clear-forum-search") {
           e.stopPropagation();
-          if (button.disabled) return;
-
-          const courseCode = button.dataset.courseCode;
-          const sectionCode = button.dataset.sectionCode;
-          const originalContent = button.innerHTML;
-          button.disabled = true;
-          button.innerHTML = `<span class="ms mentari-spin" style="font-size:16px;">sync</span>`;
-
-          try {
-            Utils.progressToast("Sedang mengambil pertanyaan kuisioner...");
-            const detail = await ApiService.fetchKuesioner(
-              courseCode,
-              sectionCode,
-            );
-            const questions = detail?.kuesioner || [];
-            if (!questions.length)
-              throw new Error("Pertanyaan kuisioner kosong");
-
-            Utils.progressToast("Sedang mengirim jawaban kuisioner...");
-            await ApiService.submitKuesioner(
-              courseCode,
-              sectionCode,
-              questions,
-            );
-            Utils.closeProgressToast();
-            Utils.successToast("Kuisioner berhasil dikirim");
-            setTimeout(() => App.refreshData(true), 700);
-          } catch (error) {
-            console.warn("[Mentari Assistant] Gagal submit kuisioner", {
-              kode_course: courseCode,
-              kode_section: sectionCode,
-              error,
-            });
-            Utils.closeProgressToast();
-            Utils.toast("Kuisioner gagal dikirim");
-            button.disabled = false;
-            button.innerHTML = originalContent;
+          State.forumSearch = "";
+          const input = UIRenderer.byId("forum-search-input");
+          if (input) {
+            input.value = "";
+            input.focus?.();
           }
-        };
+          UIRenderer.byId("forum-search-clear")?.classList.remove("visible");
+          this.applyFilters();
+          return;
+        }
+
+        if (action === "filter-forum-type") {
+          e.stopPropagation();
+          const filter = actionEl.dataset.filter || "all";
+          State.forumTypeFilter = filter;
+          el.querySelectorAll('[data-action="filter-forum-type"]').forEach(
+            (chip) => {
+              const isMatch = chip.dataset.filter === filter;
+              chip.classList.toggle("active", isMatch);
+              chip.setAttribute("aria-pressed", isMatch ? "true" : "false");
+            },
+          );
+          this.applyFilters();
+          return;
+        }
+
+        if (action === "toggle-section") {
+          e.stopPropagation();
+          const target = UIRenderer.byId(actionEl.dataset.target);
+          const toggle = actionEl.querySelector(".section-toggle");
+          if (!target) return;
+          const isVisible = target.classList.contains("active");
+          if (isVisible) {
+            target.classList.remove("active");
+            toggle?.classList.remove("active");
+            actionEl.setAttribute("aria-expanded", "false");
+          } else {
+            UIRenderer.qsa(".section-content.active").forEach((openSec) => {
+              openSec.classList.remove("active");
+              const card = openSec.closest(".section-card");
+              card?.querySelector(".section-toggle")?.classList.remove("active");
+              card
+                ?.querySelector(".section-header")
+                ?.setAttribute("aria-expanded", "false");
+            });
+            target.classList.add("active");
+            toggle?.classList.add("active");
+            actionEl.setAttribute("aria-expanded", "true");
+            this.loadSectionData(target);
+          }
+          return;
+        }
+
+        if (action === "open-url") {
+          const eventEl = getEventElement(e);
+          if (
+            eventEl?.closest?.(
+              "a, button, input, select, textarea, form, .topics-container, .forum-html-preview",
+            )
+          )
+            return;
+          const url = actionEl.dataset.url;
+          if (url && url !== "#") window.location.href = url;
+          return;
+        }
+
+        if (action === "toggle-forum-content") {
+          e.stopPropagation();
+          const preview = UIRenderer.byId(actionEl.dataset.target);
+          if (preview) preview.hidden = !preview.hidden;
+          return;
+        }
+
+        if (action === "open-forum-reply") {
+          e.stopPropagation();
+          const forumId = actionEl.dataset.forumId;
+          const container = Array.from(
+            UIRenderer.qsa(".topics-container"),
+          ).find((node) => node.dataset.forumId === forumId);
+          if (container) this.toggleForumReplyForm(container);
+          return;
+        }
+
+        if (action === "submit-kuesioner") {
+          e.stopPropagation();
+          this.handleKuesionerSubmit(actionEl);
+        }
+      });
+    },
+
+    async handleKuesionerSubmit(button) {
+      if (!button || button.disabled) return;
+
+      const courseCode = button.dataset.courseCode;
+      const sectionCode = button.dataset.sectionCode;
+      const originalContent = button.innerHTML;
+      button.disabled = true;
+      button.innerHTML = ico("refresh", 14, "mentari-spin");
+
+      try {
+        Utils.progressToast("Sedang mengambil pertanyaan kuisioner...");
+        const detail = await ApiService.fetchKuesioner(courseCode, sectionCode);
+        const questions = detail?.kuesioner || [];
+        if (!questions.length) throw new Error("Pertanyaan kuisioner kosong");
+
+        Utils.progressToast("Sedang mengirim jawaban kuisioner...");
+        await ApiService.submitKuesioner(courseCode, sectionCode, questions);
+        Utils.closeProgressToast();
+        Utils.successToast("Kuisioner berhasil dikirim");
+        setTimeout(() => App.refreshData(true), 700);
+      } catch (error) {
+        console.warn("[Mentari Assistant] Gagal submit kuisioner", {
+          kode_course: courseCode,
+          kode_section: sectionCode,
+          error,
+        });
+        Utils.closeProgressToast();
+        Utils.toast("Kuisioner gagal dikirim");
+        button.disabled = false;
+        button.innerHTML = originalContent;
+      }
+    },
+
+    applyFilters() {
+      const forumEl = UIRenderer.byId("forum-tab-tab");
+      if (!forumEl) return;
+      const q = (State.forumSearch || "").trim().toLowerCase();
+      const typeFilter = State.forumTypeFilter || "all";
+      let visibleCourses = 0;
+
+      forumEl.querySelectorAll(".course-card").forEach((courseEl) => {
+        const courseSearch = (courseEl.dataset.search || "").toLowerCase();
+        const courseMatchesQuery = !q || courseSearch.includes(q);
+        let visibleSections = 0;
+
+        courseEl.querySelectorAll(".section-card").forEach((sectionEl) => {
+          const sectionSearch = (sectionEl.dataset.search || "").toLowerCase();
+          const sectionMatchesQuery =
+            !q || courseMatchesQuery || sectionSearch.includes(q);
+          let visibleItems = 0;
+
+          sectionEl
+            .querySelectorAll('.item-row[data-item="true"]')
+            .forEach((itemEl) => {
+              const itemType = itemEl.dataset.type || "other";
+              const itemSearch = (itemEl.dataset.search || "").toLowerCase();
+              const matchesType =
+                typeFilter === "all" || itemType === typeFilter;
+              const matchesQuery =
+                !q || sectionMatchesQuery || itemSearch.includes(q);
+              const showItem = matchesType && matchesQuery;
+              itemEl.hidden = !showItem;
+              if (showItem) visibleItems++;
+            });
+
+          const showSection = visibleItems > 0;
+          sectionEl.hidden = !showSection;
+          if (showSection) visibleSections++;
+        });
+
+        const showCourse = visibleSections > 0;
+        courseEl.hidden = !showCourse;
+        if (showCourse) visibleCourses++;
       });
 
-      document.querySelectorAll(".section-content.active").forEach((section) => {
+      const emptyFilter = UIRenderer.byId("forum-empty-filter");
+      if (emptyFilter) emptyFilter.hidden = visibleCourses > 0;
+    },
+
+    initInteractions() {
+      const forumEl = UIRenderer.byId("forum-tab-tab");
+      this.bindDelegatedEvents(forumEl);
+
+      UIRenderer.qsa(".section-content.active").forEach((section) => {
         this.loadSectionData(section);
       });
     },
 
-    loadSectionData(scope = document, force = false) {
+    loadSectionData(scope = UIRenderer.getRoot(), force = false) {
       if (!scope) return;
-      if (!force && scope !== document && scope.dataset?.loaded === "true") {
+      const root = UIRenderer.getRoot();
+      if (
+        !force &&
+        scope !== root &&
+        scope !== document &&
+        scope.dataset?.loaded === "true"
+      ) {
         return;
       }
-      if (scope !== document && scope.dataset) {
+      if (scope !== root && scope !== document && scope.dataset) {
         scope.dataset.loaded = "true";
       }
       this.loadQuizParticipants(scope, force);
       this.loadTopics(scope, force);
     },
 
-    loadQuizParticipants(scope = document, force = false) {
+    loadQuizParticipants(scope = UIRenderer.getRoot(), force = false) {
       if (!scope) return;
       scope
         .querySelectorAll(".quiz-participant-status[data-quiz-id]")
@@ -2074,7 +1082,7 @@
                     return s > 0 ? `${m}m ${s}s` : `${m} menit`;
                   })()
                 : "-";
-            statusEl.innerHTML = `<span class="ms" style="font-size:12px;">timer</span> ${Utils.escapeHtml(timeDisplay)} <span style="margin-left:4px;">Nilai: ${Utils.escapeHtml(grade)}</span>`;
+            statusEl.innerHTML = `${ico("clock", 12)} ${Utils.escapeHtml(timeDisplay)} <span style="margin-left:4px;">Nilai: ${Utils.escapeHtml(grade)}</span>`;
           } catch (error) {
             delete statusEl.dataset.loaded;
             statusEl.textContent = "Status tidak tersedia";
@@ -2082,7 +1090,7 @@
         });
     },
 
-    loadTopics(scope = document, force = false) {
+    loadTopics(scope = UIRenderer.getRoot(), force = false) {
       if (!scope) return Promise.resolve();
       const tasks = Array.from(scope.querySelectorAll(".topics-container")).map(
         async (container) => {
@@ -2090,7 +1098,6 @@
           const id = container.dataset.forumId;
           if (!id || id === "null" || id === "undefined") return;
           container.dataset.loaded = "true";
-          container.onclick = (event) => event.stopPropagation();
           try {
             const res = await ApiService.fetchForumTopics(id);
             const topics =
@@ -2179,30 +1186,30 @@
         0,
       );
 
-      const countEl = container
-        .closest(".item-row")
-        ?.querySelector(`.forum-reply-count[data-forum-id="${sectionId}"]`);
-      if (countEl)
-        countEl.innerHTML = `<span class="ms" style="font-size:12px;">reply</span> Reply Kamu: ${totalReplies}`;
+      const countEl = Array.from(
+        container.closest(".item-row")?.querySelectorAll(".forum-reply-count") ||
+          [],
+      ).find((node) => node.dataset.forumId === sectionId);
+      if (countEl) {
+        countEl.innerHTML = `${ico("reply", 12)} Reply Kamu: ${totalReplies}`;
+      }
 
       visibleGroups.forEach(
         ({ topic, root, ownReplies, studentReplyCount }) => {
           const topicEl = document.createElement("div");
-          topicEl.style.cssText =
-            "margin-top:8px; padding:10px 12px; border:1px solid rgba(249,115,22,0.2); border-radius:8px; font-size:11px; line-height:1.5;";
+          topicEl.className = "topic-card";
 
           const title = document.createElement("a");
-          title.href = `https://mentari.unpam.ac.id/u-courses/${courseCode}/forum/${sectionId}/topics/${topic.id}`;
+          title.href = `https://mentari.unpam.ac.id/u-courses/${encodeURIComponent(courseCode)}/forum/${encodeURIComponent(sectionId)}/topics/${encodeURIComponent(topic.id)}`;
+          title.target = "_blank";
+          title.rel = "noopener noreferrer";
           title.className = "topic-badge";
-          title.style.cssText =
-            "font-weight:700; color:#fb923c; display:flex; align-items:center; gap:6px;";
-          title.innerHTML = `<span class="ms" style="font-size:14px; flex-shrink:0;">chat</span><span style="flex:1; min-width:0;">${Utils.escapeHtml(topic.judul || "Forum Diskusi")}</span><span class="item-status status-done" style="flex-shrink:0;"><span class="ms" style="font-size:10px;">reply</span> ${studentReplyCount}</span>`;
-          title.onclick = (event) => event.stopPropagation();
+          title.innerHTML = `${ico("forum", 14)}<span style="flex:1; min-width:0;">${Utils.escapeHtml(topic.judul || "Forum Diskusi")}</span><span class="item-status status-done" style="flex-shrink:0;">${ico("reply", 10)} ${studentReplyCount}</span>`;
           topicEl.appendChild(title);
 
           const rootContent = document.createElement("div");
           rootContent.style.cssText =
-            "margin-top:6px; opacity:0.85; padding:4px 0;";
+            "margin-top:6px; padding:4px 0; color:var(--text-secondary);";
           rootContent.innerHTML = this.sanitizeForumHtml(
             root?.konten || topic.konten || "",
           );
@@ -2212,8 +1219,8 @@
           ownReplies.forEach((reply) => {
             const replyEl = document.createElement("div");
             replyEl.style.cssText =
-              "margin-top:6px; padding:8px 10px; border-radius:6px; background:rgba(249,115,22,0.08); border-left:3px solid #f97316; font-size:11px;";
-            replyEl.innerHTML = `${Number(reply.reply_level) === 2 ? "<span style='opacity:0.65; margin-right:4px;'>↳ Balasan:</span>" : ""}${this.sanitizeForumHtml(reply.konten || "")}`;
+              "margin-top:6px; padding:8px 10px; border-radius:6px; background:var(--accent-soft); border-left:3px solid var(--accent); font-size:11px; color:var(--text-primary);";
+            replyEl.innerHTML = `${Number(reply.reply_level) === 2 ? "<span style='opacity:0.75; margin-right:4px;'>↳ Balasan:</span>" : ""}${this.sanitizeForumHtml(reply.konten || "")}`;
             this.appendForumFiles(replyEl, reply.files);
             topicEl.appendChild(replyEl);
           });
@@ -2235,12 +1242,9 @@
         link.href = `https://mentari.unpam.ac.id/api/file/${encodeURIComponent(fileId)}`;
         link.target = "_blank";
         link.rel = "noopener noreferrer";
-        link.className = "token-button";
+        link.className = "btn btn-sm btn-primary";
         link.title = "Download lampiran";
-        link.style.cssText =
-          "padding:5px 8px; border-radius:6px; background:#f97316; font-size:10px;";
-        link.innerHTML = `<span class="ms" style="font-size:14px;">download</span> Lampiran`;
-        link.onclick = (event) => event.stopPropagation();
+        link.innerHTML = `${ico("download", 13)} Lampiran`;
         filesEl.appendChild(link);
       });
       parent.appendChild(filesEl);
@@ -2256,36 +1260,33 @@
       const targets = container._forumReplyTargets || [];
       const form = document.createElement("div");
       form.className = "forum-reply-form";
-      form.style.cssText =
-        "margin-top:8px; margin-bottom:8px; padding:10px 12px; border:1px solid rgba(249,115,22,0.25); border-radius:8px; background:rgba(0,0,0,0.3); display:flex; flex-direction:column; gap:8px;";
-      form.onclick = (event) => event.stopPropagation();
       form.innerHTML = `
         <div style="display:flex; align-items:center; justify-content:space-between;">
-          <div style="font-size:11px; font-weight:700; color:#f97316; display:flex; align-items:center; gap:5px;">
-            <span class="ms" style="font-size:14px;">edit_note</span> Tulis Balasan Forum
+          <div style="font-size:11.5px; font-weight:700; color:var(--accent); display:flex; align-items:center; gap:5px;">
+            ${ico("reply", 14)}<span>Tulis Balasan Forum</span>
           </div>
-          <button type="button" class="token-button forum-reply-cancel" style="background:transparent; border:none; padding:2px; color:#9ca3af;" title="Tutup">
-            <span class="ms" style="font-size:14px;">close</span>
+          <button type="button" class="btn btn-icon-sq forum-reply-cancel" style="border:none;background:transparent;" title="Tutup">
+            ${ico("close", 14)}
           </button>
         </div>
         <div style="display:flex; flex-direction:column; gap:4px; max-width:100%; position:relative;">
-          <label style="font-size:10px; opacity:0.75; font-weight:600;">Sasaran Balasan:</label>
+          <label style="font-size:10.5px; color:var(--text-secondary); font-weight:600;">Sasaran Balasan:</label>
           <input type="hidden" class="forum-reply-parent-val" value="" />
-          <button type="button" class="custom-reply-select-btn" style="width:100%; max-width:100%; box-sizing:border-box; padding:7px 10px; border:1px solid #2a2d35; border-radius:6px; background:#14161a; color:#f3f4f6; font-size:11px; text-align:left; cursor:pointer; display:flex; align-items:center; justify-content:space-between; gap:6px; line-height:1.4;">
+          <button type="button" class="custom-reply-select-btn settings-select" style="text-align:left; cursor:pointer; display:flex; align-items:center; justify-content:space-between; gap:6px; line-height:1.4;">
             <span class="custom-reply-select-label" style="flex:1; min-width:0; white-space:normal; word-break:break-word; overflow-wrap:anywhere;">Pilih sasaran balasan...</span>
-            <span class="ms" style="font-size:14px; opacity:0.6; flex-shrink:0;">expand_more</span>
+            ${ico("chevronDown", 14)}
           </button>
-          <div class="custom-reply-options-list" style="display:none; position:absolute; top:100%; left:0; right:0; margin-top:4px; max-height:180px; overflow-y:auto; background:#1b1d22; border:1px solid rgba(249,115,22,0.35); border-radius:6px; z-index:100; box-shadow:0 6px 20px rgba(0,0,0,0.5); box-sizing:border-box;">
+          <div class="custom-reply-options-list" hidden style="position:absolute; top:100%; left:0; right:0; margin-top:4px; max-height:180px; overflow-y:auto; background:var(--bg-elevated); border:1px solid var(--border-strong); border-radius:6px; z-index:100; box-shadow:0 8px 20px rgba(0,0,0,0.35);">
           </div>
         </div>
         <div style="display:flex; flex-direction:column; gap:4px;">
-          <label style="font-size:10px; opacity:0.75; font-weight:600;">Isi Pesan Balasan:</label>
-          <textarea class="forum-reply-input" rows="3" placeholder="Tuliskan argumen / jawaban forum kamu secara lengkap..." style="width:100%; box-sizing:border-box; resize:vertical; padding:8px; border:1px solid #2a2d35; border-radius:6px; background:#14161a; color:#f3f4f6; font-family:inherit; font-size:11px; min-height:65px; outline:none;"></textarea>
+          <label style="font-size:10.5px; color:var(--text-secondary); font-weight:600;">Isi Pesan Balasan:</label>
+          <textarea class="forum-reply-input" rows="3" placeholder="Tuliskan argumen / jawaban forum kamu secara lengkap..." style="resize:vertical; min-height:70px;"></textarea>
         </div>
         <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:2px;">
-          <button type="button" class="token-button forum-reply-cancel-btn" style="padding:4px 10px; background:rgba(255,255,255,0.08); color:#d1d5db; border-radius:6px; font-size:11px; font-weight:600;">Batal</button>
-          <button type="button" class="token-button forum-reply-send" style="padding:4px 14px; background:#f97316; color:#fff; border-radius:6px; font-size:11px; font-weight:600; display:inline-flex; align-items:center; gap:4px;">
-            <span class="ms" style="font-size:13px;">send</span> Kirim Balasan
+          <button type="button" class="btn btn-sm forum-reply-cancel-btn">Batal</button>
+          <button type="button" class="btn btn-sm btn-primary forum-reply-send">
+            ${ico("send", 13)}<span>Kirim Balasan</span>
           </button>
         </div>
       `;
@@ -2295,16 +1296,15 @@
       const selectLabel = form.querySelector(".custom-reply-select-label");
       const optionsList = form.querySelector(".custom-reply-options-list");
 
-      selectBtn.onclick = (e) => {
+      selectBtn.addEventListener("click", (e) => {
         e.stopPropagation();
-        optionsList.style.display =
-          optionsList.style.display === "none" ? "block" : "none";
-      };
+        optionsList.hidden = !optionsList.hidden;
+      });
 
       const selectOption = (id, text) => {
         hiddenInput.value = id;
         selectLabel.textContent = text;
-        optionsList.style.display = "none";
+        optionsList.hidden = true;
       };
 
       let isFirst = true;
@@ -2312,15 +1312,18 @@
       targets.forEach((target) => {
         const item = document.createElement("div");
         item.style.cssText =
-          "padding:8px 10px; border-bottom:1px solid #2a2d35; font-size:11px; line-height:1.4; white-space:normal; word-break:break-word; overflow-wrap:anywhere; cursor:pointer; color:#f3f4f6; transition:background 0.15s; box-sizing:border-box;";
+          "padding:8px 10px; border-bottom:1px solid var(--border-subtle); font-size:11px; line-height:1.4; white-space:normal; word-break:break-word; overflow-wrap:anywhere; cursor:pointer; color:var(--text-primary);";
         item.textContent = target.label;
-        item.onmouseenter = () =>
-          (item.style.background = "rgba(249,115,22,0.22)");
-        item.onmouseleave = () => (item.style.background = "transparent");
-        item.onclick = (e) => {
+        item.addEventListener("mouseenter", () => {
+          item.style.background = "var(--accent-soft)";
+        });
+        item.addEventListener("mouseleave", () => {
+          item.style.background = "transparent";
+        });
+        item.addEventListener("click", (e) => {
           e.stopPropagation();
           selectOption(target.id, target.label);
-        };
+        });
         optionsList.appendChild(item);
 
         if (isFirst) {
@@ -2333,73 +1336,78 @@
           .forEach((reply) => {
             const replyItem = document.createElement("div");
             replyItem.style.cssText =
-              "padding:8px 10px 8px 20px; border-bottom:1px solid #2a2d35; font-size:11px; line-height:1.4; white-space:normal; word-break:break-word; overflow-wrap:anywhere; cursor:pointer; color:#9ca3af; transition:background 0.15s; box-sizing:border-box;";
+              "padding:8px 10px 8px 20px; border-bottom:1px solid var(--border-subtle); font-size:11px; line-height:1.4; white-space:normal; word-break:break-word; overflow-wrap:anywhere; cursor:pointer; color:var(--text-secondary);";
             const cleanedText = this.cleanForumText(reply.konten);
             const fullText = `↳ Reply kamu: ${cleanedText}`;
             replyItem.textContent = fullText;
-            replyItem.onmouseenter = () => {
-              replyItem.style.background = "rgba(249,115,22,0.22)";
-              replyItem.style.color = "#f3f4f6";
-            };
-            replyItem.onmouseleave = () => {
+            replyItem.addEventListener("mouseenter", () => {
+              replyItem.style.background = "var(--accent-soft)";
+              replyItem.style.color = "var(--text-primary)";
+            });
+            replyItem.addEventListener("mouseleave", () => {
               replyItem.style.background = "transparent";
-              replyItem.style.color = "#9ca3af";
-            };
-            replyItem.onclick = (e) => {
+              replyItem.style.color = "var(--text-secondary)";
+            });
+            replyItem.addEventListener("click", (e) => {
               e.stopPropagation();
               selectOption(reply.id, fullText);
-            };
+            });
             optionsList.appendChild(replyItem);
           });
       });
 
       const closeForm = () => form.remove();
-      form.querySelector(".forum-reply-cancel").onclick = closeForm;
-      const cancelBtn = form.querySelector(".forum-reply-cancel-btn");
-      if (cancelBtn) cancelBtn.onclick = closeForm;
+      form
+        .querySelector(".forum-reply-cancel")
+        ?.addEventListener("click", closeForm);
+      form
+        .querySelector(".forum-reply-cancel-btn")
+        ?.addEventListener("click", closeForm);
 
-      form.querySelector(".forum-reply-send").onclick = async () => {
-        const sendButton = form.querySelector(".forum-reply-send");
-        const content = form.querySelector(".forum-reply-input").value.trim();
-        const parentId = hiddenInput.value;
-        const parentTarget = targets
-          .flatMap((target) => [
-            { id: target.id, topicId: target.topicId, judul: target.judul },
-            ...target.replies.map((reply) => ({
-              id: reply.id,
-              topicId: reply.topicId,
-              judul: target.judul,
-            })),
-          ])
-          .find((target) => target.id === parentId);
-        if (!content || !parentId || !parentTarget) {
-          Utils.toast("Pilih parent dan isi jawaban terlebih dahulu");
-          return;
-        }
+      form
+        .querySelector(".forum-reply-send")
+        ?.addEventListener("click", async () => {
+          const sendButton = form.querySelector(".forum-reply-send");
+          const content = form.querySelector(".forum-reply-input").value.trim();
+          const parentId = hiddenInput.value;
+          const parentTarget = targets
+            .flatMap((target) => [
+              { id: target.id, topicId: target.topicId, judul: target.judul },
+              ...target.replies.map((reply) => ({
+                id: reply.id,
+                topicId: reply.topicId,
+                judul: target.judul,
+              })),
+            ])
+            .find((target) => target.id === parentId);
+          if (!content || !parentId || !parentTarget) {
+            Utils.toast("Pilih parent dan isi jawaban terlebih dahulu");
+            return;
+          }
 
-        sendButton.disabled = true;
-        sendButton.innerHTML = `<span class="ms mentari-spin">sync</span>`;
-        try {
-          await ApiService.submitForumReply({
-            id_topic: parentTarget.topicId,
-            id_post: parentId,
-            konten: content,
-            judul: parentTarget.judul,
-          });
-          Utils.successToast("Reply forum berhasil dikirim");
-          form.remove();
-          await this.loadTopics(
-            container.closest(".section-content") ||
-              container.parentElement ||
-              document,
-            true,
-          );
-        } catch (error) {
-          Utils.toast(`Reply forum gagal: ${error.message}`);
-          sendButton.disabled = false;
-          sendButton.innerHTML = `<span class="ms">send</span> Kirim Balasan`;
-        }
-      };
+          sendButton.disabled = true;
+          sendButton.innerHTML = ico("refresh", 13, "mentari-spin");
+          try {
+            await ApiService.submitForumReply({
+              id_topic: parentTarget.topicId,
+              id_post: parentId,
+              konten: content,
+              judul: parentTarget.judul,
+            });
+            Utils.successToast("Reply forum berhasil dikirim");
+            form.remove();
+            await this.loadTopics(
+              container.closest(".section-content") ||
+                container.parentElement ||
+                UIRenderer.getRoot(),
+              true,
+            );
+          } catch (error) {
+            Utils.toast(`Reply forum gagal: ${error.message}`);
+            sendButton.disabled = false;
+            sendButton.innerHTML = `${ico("send", 13)}<span>Kirim Balasan</span>`;
+          }
+        });
 
       container.prepend(form);
     },
@@ -2418,8 +1426,17 @@
         .forEach((element) => element.remove());
       wrapper.querySelectorAll("*").forEach((element) => {
         Array.from(element.attributes).forEach((attribute) => {
-          if (attribute.name.toLowerCase().startsWith("on"))
+          const name = attribute.name.toLowerCase();
+          if (name.startsWith("on")) {
             element.removeAttribute(attribute.name);
+            return;
+          }
+          if (
+            (name === "href" || name === "src") &&
+            /^\s*javascript:/i.test(attribute.value || "")
+          ) {
+            element.removeAttribute(attribute.name);
+          }
         });
 
         if (element.hasAttribute("style")) {
@@ -2464,30 +1481,57 @@
     },
 
     mhs(data) {
-      const el = document.getElementById("mhs-tab-tab");
+      const el = UIRenderer.byId("mhs-tab-tab");
       if (!el) return;
-      const all = [];
+
+      const list = Array.isArray(data) ? data : [];
+      const courseOptions = [];
       const map = new Map();
-      data.forEach((c) => {
-        if (String(c.kode_course || "").toUpperCase().includes("PKKMB"))
-          return;
-        c.peserta?.forEach((p) => {
-          if (p.nim && !map.has(p.nim)) {
-            map.set(p.nim, p);
-            all.push(p);
+
+      list.forEach((c) => {
+        const code = String(c.kode_course || "").trim();
+        if (!code || code.toUpperCase().includes("PKKMB")) return;
+        const participants = Array.isArray(c.peserta) ? c.peserta : [];
+        if (!participants.length) return;
+
+        const title = cleanCourseTitle(
+          c.coursename || c.nama_mata_kuliah || code,
+        );
+        courseOptions.push({ code, title });
+
+        participants.forEach((p) => {
+          if (!p?.nim) return;
+          if (!map.has(p.nim)) {
+            map.set(p.nim, { ...p, _courses: new Set([code]) });
+          } else {
+            map.get(p.nim)._courses.add(code);
           }
         });
       });
+
+      const all = Array.from(map.values());
       if (!all.length) {
         el.innerHTML = `
           <div class="empty-state">
-            <div class="empty-icon"><span class="ms" style="font-size:36px;">groups</span></div>
+            <div class="empty-icon">${ico("groups", 28)}</div>
             <div class="empty-title">Tidak Ada Data Mahasiswa</div>
             <div class="empty-desc">Data teman sekelas akan tampil setelah mata kuliah termuat.</div>
           </div>`;
         return;
       }
-      all.sort((a, b) => a.nama_mahasiswa.localeCompare(b.nama_mahasiswa));
+
+      if (
+        State.mhsCourseFilter !== "all" &&
+        !courseOptions.some((opt) => opt.code === State.mhsCourseFilter)
+      ) {
+        State.mhsCourseFilter = "all";
+      }
+
+      all.sort((a, b) =>
+        String(a.nama_mahasiswa || "").localeCompare(
+          String(b.nama_mahasiswa || ""),
+        ),
+      );
 
       const rows = all
         .map((p, i) => {
@@ -2499,52 +1543,197 @@
             p.no_hp_mahasiswa && p.no_hp_mahasiswa !== "-"
               ? p.no_hp_mahasiswa
               : null;
+          const courses = Array.from(p._courses).join(",");
+          const searchStr = [name, p.nim, email, hp].filter(Boolean).join(" ");
+
           return `
-          <div class="student-row">
+          <div class="student-row"
+            data-courses="${Utils.escapeHtml(courses)}"
+            data-search="${Utils.escapeHtml(searchStr)}"
+            data-name="${Utils.escapeHtml(name)}"
+            data-nim="${Utils.escapeHtml(p.nim)}">
             <div class="student-avatar">${Utils.escapeHtml(initial)}</div>
             <div class="student-info">
               <div class="student-name">${Utils.escapeHtml(name)}</div>
               <div class="student-meta">
-                <span class="student-nim">${Utils.escapeHtml(p.nim)}</span>
+                <button type="button" class="btn btn-sm" style="height:20px;padding:0 6px;font-size:10px;gap:4px;" data-action="copy-nim" data-nim="${Utils.escapeHtml(p.nim)}" title="Salin NIM">
+                  <span class="student-nim">${Utils.escapeHtml(p.nim)}</span>
+                  ${ico("copy", 10)}
+                </button>
                 ${email ? `<span style="white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:130px;" title="${Utils.escapeHtml(email)}">${Utils.escapeHtml(email)}</span>` : ""}
                 ${hp ? `<span>${Utils.escapeHtml(hp)}</span>` : ""}
               </div>
             </div>
-            <span class="student-rank">${i + 1}</span>
+            <span class="student-rank" style="font-size:10px; color:var(--text-secondary); font-variant-numeric:tabular-nums; flex-shrink:0;">${i + 1}</span>
           </div>`;
         })
         .join("");
 
       el.innerHTML = `
+        <div class="toolbar-stack">
+          <select id="mhs-course-filter" class="settings-select" aria-label="Filter Mata Kuliah">
+            <option value="all"${State.mhsCourseFilter === "all" ? " selected" : ""}>Semua Matkul</option>
+            ${courseOptions
+              .map(
+                (opt) =>
+                  `<option value="${Utils.escapeHtml(opt.code)}"${State.mhsCourseFilter === opt.code ? " selected" : ""}>${Utils.escapeHtml(opt.title)}</option>`,
+              )
+              .join("")}
+          </select>
+          <div class="search-box">
+            <span class="search-ico">${ico("search", 14)}</span>
+            <input type="text" id="mhs-search-input" class="search-input" placeholder="Cari nama atau NIM..." value="${Utils.escapeHtml(State.mhsSearch)}" autocomplete="off" />
+            <button type="button" id="mhs-search-clear" class="search-clear${State.mhsSearch ? " visible" : ""}" data-action="clear-mhs-search" aria-label="Hapus pencarian" title="Hapus pencarian">${ico("close", 13)}</button>
+          </div>
+        </div>
         <div class="student-list-card">
           <div class="student-list-header">
-            <div class="student-list-title"><span class="ms">groups</span> Daftar Mahasiswa <span class="student-count">${all.length}</span></div>
-            <button id="copy-mhs" class="token-button" style="padding:5px 10px; height:28px; font-size:10px; gap:4px; border-radius:6px;">
-              <span class="ms" style="font-size:14px;">content_copy</span> Salin
+            <div style="display:flex; align-items:center; gap:6px;">
+              ${ico("groups", 15)}
+              <span>Daftar Mahasiswa</span>
+              <span id="mhs-visible-count" class="student-count">${all.length}</span>
+            </div>
+            <button type="button" id="copy-mhs" class="btn btn-sm btn-primary" data-action="copy-all-mhs">
+              ${ico("copy", 13)}<span>Salin Semua</span>
             </button>
           </div>
           <div class="student-model-list">${rows}</div>
+          <div id="mhs-empty-filter" class="empty-state" hidden>
+            <div class="empty-icon">${ico("search", 26)}</div>
+            <div class="empty-title">Mahasiswa Tidak Ditemukan</div>
+            <div class="empty-desc">Coba pilih mata kuliah lain atau ubah kata kunci pencarian.</div>
+          </div>
         </div>`;
 
-      document.getElementById("copy-mhs").onclick = (e) => {
-        e.stopPropagation();
-        const txt = all
-          .map((p, i) => `${i + 1}. ${p.nama_mahasiswa} (${p.nim})`)
-          .join("\n");
-        Utils.copy(txt, "Daftar mahasiswa disalin");
-      };
+      this.bindMhsEvents(el);
+      this.applyMhsFilter();
+    },
+
+    bindMhsEvents(el) {
+      if (!el || el.dataset.delegated === "true") return;
+      el.dataset.delegated = "true";
+
+      el.addEventListener("input", (e) => {
+        const target = getEventElement(e);
+        if (target?.id === "mhs-search-input") {
+          State.mhsSearch = target.value || "";
+          UIRenderer.byId("mhs-search-clear")?.classList.toggle(
+            "visible",
+            Boolean(State.mhsSearch),
+          );
+          this.applyMhsFilter();
+        }
+      });
+
+      el.addEventListener("change", (e) => {
+        const target = getEventElement(e);
+        if (target?.id === "mhs-course-filter") {
+          State.mhsCourseFilter = target.value || "all";
+          this.applyMhsFilter();
+        }
+      });
+
+      el.addEventListener("click", (e) => {
+        const actionEl = getEventActionTarget(e, "[data-action]");
+        if (!actionEl) return;
+        const action = actionEl.dataset.action;
+
+        if (action === "clear-mhs-search") {
+          e.stopPropagation();
+          State.mhsSearch = "";
+          const input = UIRenderer.byId("mhs-search-input");
+          if (input) {
+            input.value = "";
+            input.focus?.();
+          }
+          UIRenderer.byId("mhs-search-clear")?.classList.remove("visible");
+          this.applyMhsFilter();
+          return;
+        }
+
+        if (action === "copy-nim") {
+          e.stopPropagation();
+          const nim = actionEl.dataset.nim || "";
+          if (nim) Utils.copy(nim, `NIM disalin: ${nim}`);
+          return;
+        }
+
+        if (action === "copy-all-mhs") {
+          e.stopPropagation();
+          const visibleRows = Array.from(el.querySelectorAll(".student-row")).filter(
+            (row) => !row.hidden,
+          );
+          if (!visibleRows.length) {
+            Utils.toast("Tidak ada mahasiswa untuk disalin");
+            return;
+          }
+          const txt = visibleRows
+            .map(
+              (row, i) =>
+                `${i + 1}. ${row.dataset.name || "-"} (${row.dataset.nim || "-"})`,
+            )
+            .join("\n");
+          Utils.copy(txt, "Daftar mahasiswa disalin");
+        }
+      });
+    },
+
+    applyMhsFilter() {
+      const mhsEl = UIRenderer.byId("mhs-tab-tab");
+      if (!mhsEl) return;
+      const courseCode = State.mhsCourseFilter || "all";
+      const q = (State.mhsSearch || "").trim().toLowerCase();
+      let visibleCount = 0;
+
+      mhsEl.querySelectorAll(".student-row").forEach((row) => {
+        const courses = (row.dataset.courses || "").split(",");
+        const matchesCourse =
+          courseCode === "all" || courses.includes(courseCode);
+        const matchesQuery =
+          !q || (row.dataset.search || "").toLowerCase().includes(q);
+        const show = matchesCourse && matchesQuery;
+        row.hidden = !show;
+        if (show) visibleCount++;
+      });
+
+      const countEl = UIRenderer.byId("mhs-visible-count");
+      if (countEl) countEl.textContent = String(visibleCount);
+      const emptyEl = UIRenderer.byId("mhs-empty-filter");
+      if (emptyEl) emptyEl.hidden = visibleCount > 0;
     },
 
     notif(items = []) {
-      const el = document.getElementById("notif-tab-tab");
+      const el = UIRenderer.byId("notif-tab-tab");
+      const list = Array.isArray(items) ? items : [];
+
+      const badge = UIRenderer.byId("notif-tab-badge");
+      if (badge) {
+        badge.textContent = list.length ? String(list.length) : "";
+        badge.style.display = list.length ? "inline-flex" : "none";
+      }
+
       if (!el) return;
-      if (!items.length) {
+
+      const toolbarHtml = `
+        <div class="notif-toolbar">
+          <span style="font-size:11.5px; font-weight:600; color:var(--text-secondary);">
+            ${list.length ? `${list.length} balasan dosen` : "Balasan dosen dari forum"}
+          </span>
+          <button type="button" id="notif-refresh-btn" class="btn btn-sm" data-action="refresh-notifs">
+            ${ico("refresh", 13)}<span>Periksa Sekarang</span>
+          </button>
+        </div>
+      `;
+
+      if (!list.length) {
         el.innerHTML = `
+          ${toolbarHtml}
           <div class="empty-state">
-            <div class="empty-icon"><span class="ms" style="font-size:36px;">notifications_none</span></div>
+            <div class="empty-icon">${ico("notif", 28)}</div>
             <div class="empty-title">Belum Ada Notifikasi</div>
             <div class="empty-desc">Belum ada balasan terbaru dari dosen di forum diskusi kamu.</div>
           </div>`;
+        this.bindNotifEvents(el);
         return;
       }
 
@@ -2555,31 +1744,65 @@
         minute: "2-digit",
       };
 
-      el.innerHTML = items
+      const cardsHtml = list
         .map((item) => {
           const dateLabel = item.date
             ? new Date(item.date).toLocaleDateString("id-ID", dateFmt)
             : "-";
+          const itemUrl = Utils.safeUrl(item.url);
           return `
-            <div class="data-card" style="border-left:3px solid #f97316; background:rgba(249,115,22,0.04); position:relative;">
+            <div class="notif-card">
               <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:8px; margin-bottom:6px;">
-                <div style="font-weight:700; font-size:13px; color:#f97316;">${Utils.escapeHtml(item.lecturerName || "Dosen")}</div>
-                <div style="font-size:10px; opacity:0.65; display:flex; align-items:center; gap:3px; flex-shrink:0;">
-                  <span class="ms" style="font-size:12px;">schedule</span> ${Utils.escapeHtml(dateLabel)}
+                <div style="font-weight:700; font-size:12.5px; color:var(--accent);">${Utils.escapeHtml(item.lecturerName || "Dosen")}</div>
+                <div style="font-size:10.5px; color:var(--text-secondary); display:inline-flex; align-items:center; gap:4px; flex-shrink:0;">
+                  ${ico("clock", 11)} ${Utils.escapeHtml(dateLabel)}
                 </div>
               </div>
-              <div class="notif-content" style="font-size:12px; color:rgba(255,255,255,0.82); line-height:1.45;">${Utils.escapeHtml(item.content)}</div>
-              <a href="${Utils.escapeHtml(item.url || "#")}" target="_blank" rel="noopener noreferrer" class="token-button notif-link" style="margin-top:12px; height:28px; font-size:11px; background:rgba(255,255,255,0.06); gap:6px; box-shadow:none;">
-                <span class="ms" style="font-size:14px;">visibility</span> Lihat Diskusi
+              <div class="notif-content" style="font-size:12px; color:var(--text-primary); line-height:1.5; margin-bottom:10px;">${Utils.escapeHtml(item.content)}</div>
+              <a href="${Utils.escapeHtml(itemUrl)}" target="_blank" rel="noopener noreferrer" class="btn btn-sm">
+                ${ico("external", 12)}<span>Lihat Diskusi</span>
               </a>
             </div>
           `;
         })
         .join("");
+
+      el.innerHTML = toolbarHtml + cardsHtml;
+      this.bindNotifEvents(el);
+    },
+
+    bindNotifEvents(el) {
+      if (!el || el.dataset.delegated === "true") return;
+      el.dataset.delegated = "true";
+
+      el.addEventListener("click", async (e) => {
+        const actionEl = getEventActionTarget(
+          e,
+          '[data-action="refresh-notifs"]',
+        );
+        if (!actionEl || actionEl.disabled) return;
+        e.stopPropagation();
+
+        if (!State.courseDataList.length) {
+          Utils.toast("Data mata kuliah belum dimuat");
+          return;
+        }
+
+        actionEl.disabled = true;
+        actionEl.innerHTML = `${ico("refresh", 13, "mentari-spin")}<span>Memeriksa...</span>`;
+        try {
+          await App.syncLecturerNotifications(State.courseDataList, true);
+        } finally {
+          if (UIRenderer.byId("notif-refresh-btn") === actionEl) {
+            actionEl.disabled = false;
+            actionEl.innerHTML = `${ico("refresh", 13)}<span>Periksa Sekarang</span>`;
+          }
+        }
+      });
     },
 
     settings(info) {
-      const el = document.getElementById("set-tab-tab");
+      const el = UIRenderer.byId("set-tab-tab");
       if (!el) return;
       const profile = info || {
         fullname: "Mahasiswa UNPAM",
@@ -2600,40 +1823,57 @@
         Utils.get(Config.STORAGE_KEYS.GEMINI_ENABLED) !== false;
       const isAutoFinishQuiz =
         Utils.get(Config.STORAGE_KEYS.AUTO_FINISH_QUIZ) !== false;
+      const themeMode = Utils.getThemeMode();
+
+      el._currentModel = currentModel;
+      el._liveModelsLoaded = false;
 
       el.innerHTML = `
         <div class="settings-profile">
           <div class="settings-avatar">${Utils.escapeHtml(fullname.charAt(0))}</div>
-          <div class="settings-profile-info">
+          <div style="min-width:0;">
             <div class="settings-label">${Utils.escapeHtml(fullname)}</div>
             <div class="settings-desc">${Utils.escapeHtml(username)} &bull; ${Utils.escapeHtml(role)}</div>
           </div>
         </div>
 
         <div class="settings-quick-links">
-          <a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noopener noreferrer" class="token-button btn-outline" style="height:32px; font-size:11px; gap:5px; border-radius:7px; box-shadow:none;">
-            <span class="ms" style="font-size:16px; color:#f97316;">vpn_key</span> API Key
+          <a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noopener noreferrer" class="btn btn-sm">
+            ${ico("key", 14)}<span>API Key</span>
           </a>
-          <a href="https://aistudio.google.com/app/rate-limit" target="_blank" rel="noopener noreferrer" class="token-button btn-outline" style="height:32px; font-size:11px; gap:5px; border-radius:7px; box-shadow:none;">
-            <span class="ms" style="font-size:16px; color:#f97316;">speed</span> AI Studio
+          <a href="https://aistudio.google.com/app/rate-limit" target="_blank" rel="noopener noreferrer" class="btn btn-sm">
+            ${ico("bolt", 14)}<span>Rate Limit</span>
           </a>
-          <a href="https://ai.google.dev/gemini-api/docs/models" target="_blank" rel="noopener noreferrer" class="token-button btn-outline" style="height:32px; font-size:11px; gap:5px; border-radius:7px; grid-column: span 2; box-shadow:none;">
-            <span class="ms" style="font-size:16px; color:#f97316;">travel_explore</span> Cari Model Gemini
+          <a href="https://ai.google.dev/gemini-api/docs/models" target="_blank" rel="noopener noreferrer" class="btn btn-sm" style="grid-column: span 2;">
+            ${ico("search", 14)}<span>Daftar Model Gemini</span>
           </a>
         </div>
 
         <div class="settings-section">
-          <div class="settings-section-header"><span class="settings-section-title"><span class="ms">tune</span> Fitur Bantuan</span></div>
+          <div class="settings-section-header">
+            <span style="display:inline-flex;align-items:center;gap:6px;">${ico("settings", 14)}<span>Tampilan &amp; Fitur Bantuan</span></span>
+          </div>
           <div class="settings-row">
             <div class="settings-row-main">
-              <div class="settings-row-title"><span class="ms">auto_awesome</span> AI Chatbot (Gemini)</div>
+              <div class="settings-row-title">Tema Panel</div>
+              <div class="settings-row-desc">Ikuti tampilan MENTARI atau pilih manual</div>
+            </div>
+            <div class="segmented" role="group" aria-label="Tema Panel">
+              <button type="button" class="segmented-btn ${themeMode === "auto" ? "active" : ""}" data-action="set-theme" data-theme-mode="auto" aria-pressed="${themeMode === "auto" ? "true" : "false"}">Auto</button>
+              <button type="button" class="segmented-btn ${themeMode === "dark" ? "active" : ""}" data-action="set-theme" data-theme-mode="dark" aria-pressed="${themeMode === "dark" ? "true" : "false"}">Gelap</button>
+              <button type="button" class="segmented-btn ${themeMode === "light" ? "active" : ""}" data-action="set-theme" data-theme-mode="light" aria-pressed="${themeMode === "light" ? "true" : "false"}">Terang</button>
+            </div>
+          </div>
+          <div class="settings-row">
+            <div class="settings-row-main">
+              <div class="settings-row-title">${ico("sparkle", 14)}<span>AI Chatbot (Gemini)</span></div>
               <div class="settings-row-desc">Tampilkan tombol bantuan AI di halaman forum</div>
             </div>
             <label class="switch"><input type="checkbox" id="set-gemini" ${isGeminiEnabled ? "checked" : ""}><span class="slider"></span></label>
           </div>
           <div class="settings-row">
             <div class="settings-row-main">
-              <div class="settings-row-title"><span class="ms">quiz</span> Auto Finish Quiz</div>
+              <div class="settings-row-title">${ico("quiz", 14)}<span>Auto Finish Quiz</span></div>
               <div class="settings-row-desc">Selesaikan kuis otomatis setelah semua soal terjawab</div>
             </div>
             <label class="switch"><input type="checkbox" id="set-quiz" ${isAutoFinishQuiz ? "checked" : ""}><span class="slider"></span></label>
@@ -2642,106 +1882,159 @@
 
         <div class="settings-section">
           <div class="settings-section-header">
-            <span class="settings-section-title"><span class="ms">auto_awesome</span> Konfigurasi Model</span>
-            <span id="set-model-status" style="font-size:9px; opacity:0.65;">${isCustom ? "Custom" : "Preset"}</span>
+            <span style="display:inline-flex;align-items:center;gap:6px;">${ico("sparkle", 14)}<span>Konfigurasi Model</span></span>
+            <span id="set-model-status" style="font-size:10px; color:var(--text-secondary);">${isCustom ? "Custom" : "Preset"}</span>
           </div>
           <div style="padding:10px 12px;">
-            <select id="set-gemini-model" style="width:100%; background:#121316; color:#f3f4f6; border:1px solid #2a2d35; border-radius:6px; padding:7px 8px; font-size:12px; outline:none; cursor:pointer;">
+            <select id="set-gemini-model" class="settings-select" style="cursor:pointer;">
               <option value="gemini-3.5-flash-lite" ${currentModel === "gemini-3.5-flash-lite" ? "selected" : ""}>Gemini 3.5 Flash Lite (Rekomendasi)</option>
               <option value="gemini-3.1-flash-lite" ${currentModel === "gemini-3.1-flash-lite" ? "selected" : ""}>Gemini 3.1 Flash Lite (Cepat)</option>
               <option value="gemini-2.5-flash-lite" ${currentModel === "gemini-2.5-flash-lite" ? "selected" : ""}>Gemini 2.5 Flash Lite (Cadangan)</option>
               <option value="custom" ${isCustom ? "selected" : ""}>Model Lainnya...</option>
             </select>
             <div id="set-gemini-custom-wrap" style="display:${isCustom ? "block" : "none"}; margin-top:8px;">
-              <input type="text" id="set-gemini-custom" placeholder="Contoh: gemini-2.5-flash" value="${isCustom ? Utils.escapeHtml(currentModel) : ""}"
-                style="width:100%; box-sizing:border-box; background:#121316; color:#f3f4f6; border:1px solid #2a2d35; border-radius:6px; padding:7px 8px; font-size:12px; outline:none;">
-              <div id="set-model-list" class="settings-model-list" style="margin-top:8px; border:1px solid #2a2d35; border-radius:6px; max-height:160px; overflow-y:auto;">
-                <div style="text-align:center; padding:12px; opacity:0.5; font-size:11px;">Memuat daftar model...</div>
+              <input type="text" id="set-gemini-custom" class="settings-input" placeholder="Contoh: gemini-2.5-flash" value="${isCustom ? Utils.escapeHtml(currentModel) : ""}" />
+              <div id="set-model-list" class="settings-model-list">
+                <div style="text-align:center; padding:12px; color:var(--text-secondary); font-size:11px;">Memuat daftar model...</div>
               </div>
             </div>
           </div>
         </div>
 
-        <button id="set-api-btn" class="token-button" style="width:100%; background:linear-gradient(135deg, #f97316, #ea580c); color:#fff; font-weight:700; border-radius:8px; height:36px; margin-bottom:10px; gap:8px; box-shadow:none; border-color:transparent;">
-          <span class="ms" style="font-size:16px;">vpn_key</span> Update API Key
+        <button type="button" id="set-api-btn" class="btn btn-primary" data-action="update-api-key" style="width:100%; height:36px; margin-bottom:10px;">
+          ${ico("key", 15)}<span>Update API Key</span>
         </button>
 
         <div class="settings-disclaimer">
-          <div style="display:flex; align-items:center; gap:5px; margin-bottom:3px;">
-            <span class="ms" style="font-size:13px; color:#f97316;">warning</span>
-            <span style="font-size:10px; font-weight:700; color:#f97316; text-transform:uppercase; letter-spacing:0.4px;">Catatan</span>
+          <div style="display:flex; align-items:center; gap:5px; margin-bottom:3px; color:var(--accent); font-size:10.5px; font-weight:700; text-transform:uppercase; letter-spacing:0.4px;">
+            ${ico("warning", 13)}<span>Catatan</span>
           </div>
-          <p class="settings-desc" style="font-size:10px; line-height:1.5; margin:0;">Periksa kembali jawaban sebelum dikirim. Jika muncul error kuota, coba ganti model Gemini lain di atas.</p>
+          <p style="font-size:10.5px; line-height:1.5; margin:0; color:var(--text-secondary);">Periksa kembali jawaban sebelum dikirim. Jika muncul error kuota, coba ganti model Gemini lain di atas.</p>
         </div>
 
-        <div class="settings-footer" style="display:flex; justify-content:space-between; align-items:center; opacity:0.65; font-size:10px;">
-          <span>v${APP_VERSION} &bull; by <a href="https://github.com/EdgePrompt" style="color:#f97316; text-decoration:none;" target="_blank" rel="noopener noreferrer">EdgePrompt</a></span>
-          <button id="set-update-btn" style="background:none; border:none; color:inherit; font-size:inherit; cursor:pointer; text-decoration:underline; padding:0;">Cek Update</button>
+        <div class="settings-footer">
+          <span>v${APP_VERSION} &bull; by <a href="https://github.com/EdgePrompt" style="color:var(--accent); text-decoration:none;" target="_blank" rel="noopener noreferrer">EdgePrompt</a></span>
+          <button type="button" id="set-update-btn" data-action="check-update" style="background:none; border:none; color:inherit; font-size:inherit; cursor:pointer; text-decoration:underline; padding:0;">Cek Update</button>
         </div>
       `;
 
-      const modelSelect = document.getElementById("set-gemini-model");
-      const customWrap = document.getElementById("set-gemini-custom-wrap");
-      const customInput = document.getElementById("set-gemini-custom");
-      let liveModelsLoaded = false;
+      this.bindSettingsEvents(el);
 
-      document.getElementById("set-gemini").onchange = (e) => {
-        Utils.save(Config.STORAGE_KEYS.GEMINI_ENABLED, e.target.checked);
-        Utils.toast(
-          e.target.checked
-            ? "AI Chatbot (Gemini) diaktifkan"
-            : "AI Chatbot (Gemini) dinonaktifkan",
-        );
-        setTimeout(() => location.reload(), 600);
-      };
+      if (isCustom) {
+        el._liveModelsLoaded = true;
+        this._loadModelList(currentModel);
+      }
+    },
 
-      document.getElementById("set-quiz").onchange = (e) => {
-        Utils.save(Config.STORAGE_KEYS.AUTO_FINISH_QUIZ, e.target.checked);
-        Utils.toast(
-          e.target.checked
-            ? "Auto Finish Quiz diaktifkan"
-            : "Auto Finish Quiz dinonaktifkan",
-        );
-      };
+    bindSettingsEvents(el) {
+      if (!el || el.dataset.delegated === "true") return;
+      el.dataset.delegated = "true";
 
-      modelSelect.onchange = (e) => {
-        const val = e.target.value;
-        if (val === "custom") {
-          customWrap.style.display = "block";
-          customInput.focus();
-          if (!liveModelsLoaded) {
-            liveModelsLoaded = true;
-            this._loadModelList(currentModel);
+      el.addEventListener("change", (e) => {
+        const target = getEventElement(e);
+        if (!target) return;
+
+        if (target.id === "set-gemini") {
+          Utils.save(Config.STORAGE_KEYS.GEMINI_ENABLED, target.checked);
+          Utils.toast(
+            target.checked
+              ? "AI Chatbot (Gemini) diaktifkan"
+              : "AI Chatbot (Gemini) dinonaktifkan",
+          );
+          setTimeout(() => location.reload(), 600);
+          return;
+        }
+
+        if (target.id === "set-quiz") {
+          Utils.save(Config.STORAGE_KEYS.AUTO_FINISH_QUIZ, target.checked);
+          Utils.toast(
+            target.checked
+              ? "Auto Finish Quiz diaktifkan"
+              : "Auto Finish Quiz dinonaktifkan",
+          );
+          return;
+        }
+
+        if (target.id === "set-gemini-model") {
+          const val = target.value;
+          const customWrap = UIRenderer.byId("set-gemini-custom-wrap");
+          const customInput = UIRenderer.byId("set-gemini-custom");
+          if (val === "custom") {
+            if (customWrap) customWrap.style.display = "block";
+            customInput?.focus?.();
+            if (!el._liveModelsLoaded) {
+              el._liveModelsLoaded = true;
+              this._loadModelList(el._currentModel || FALLBACK_MODELS[0]);
+            }
+          } else {
+            if (customWrap) customWrap.style.display = "none";
+            Utils.save(Config.STORAGE_KEYS.GEMINI_MODEL, val);
+            Utils.toast("Model diperbarui: " + val);
+            setTimeout(() => location.reload(), 600);
           }
-        } else {
-          customWrap.style.display = "none";
-          Utils.save(Config.STORAGE_KEYS.GEMINI_MODEL, val);
-          Utils.toast("Model diperbarui: " + val);
-          setTimeout(() => location.reload(), 600);
+          return;
         }
-      };
 
-      customInput.onchange = (e) => {
-        const val = e.target.value.trim();
-        if (val) {
-          Utils.save(Config.STORAGE_KEYS.GEMINI_MODEL, val);
-          Utils.toast("Model diperbarui: " + val);
-          setTimeout(() => location.reload(), 600);
+        if (target.id === "set-gemini-custom") {
+          const val = (target.value || "").trim();
+          if (val) {
+            Utils.save(Config.STORAGE_KEYS.GEMINI_MODEL, val);
+            Utils.toast("Model diperbarui: " + val);
+            setTimeout(() => location.reload(), 600);
+          }
         }
-      };
+      });
 
-      document.getElementById("set-api-btn").onclick = (e) => {
-        e.stopPropagation();
-        window.dispatchEvent(new CustomEvent("mentari-update-api-key"));
-      };
-
-      const updateBtn = document.getElementById("set-update-btn");
-      if (updateBtn) {
-        updateBtn.onclick = async (e) => {
+      el.addEventListener("click", async (e) => {
+        const modelItem = getEventActionTarget(e, ".mentari-model-item");
+        if (modelItem) {
           e.stopPropagation();
-          if (updateBtn.disabled) return;
-          updateBtn.disabled = true;
-          updateBtn.textContent = "Memeriksa...";
+          const val = modelItem.dataset.model;
+          if (val) {
+            Utils.save(Config.STORAGE_KEYS.GEMINI_MODEL, val);
+            Utils.toast("Model diperbarui: " + val);
+            setTimeout(() => location.reload(), 600);
+          }
+          return;
+        }
+
+        const actionEl = getEventActionTarget(e, "[data-action]");
+        if (!actionEl) return;
+        const action = actionEl.dataset.action;
+
+        if (action === "set-theme") {
+          e.stopPropagation();
+          const mode = actionEl.dataset.themeMode || "auto";
+          try {
+            localStorage.setItem(Config.STORAGE_KEYS.THEME_MODE, mode);
+          } catch (_) {}
+          el.querySelectorAll('[data-action="set-theme"]').forEach((btn) => {
+            const active = btn.dataset.themeMode === mode;
+            btn.classList.toggle("active", active);
+            btn.setAttribute("aria-pressed", active ? "true" : "false");
+          });
+          Utils.applyTheme();
+          Utils.toast(
+            mode === "auto"
+              ? "Tema Panel: Otomatis"
+              : mode === "dark"
+                ? "Tema Panel: Gelap"
+                : "Tema Panel: Terang",
+          );
+          return;
+        }
+
+        if (action === "update-api-key") {
+          e.stopPropagation();
+          window.dispatchEvent(new CustomEvent("mentari-update-api-key"));
+          return;
+        }
+
+        if (action === "check-update") {
+          e.stopPropagation();
+          if (actionEl.disabled) return;
+          actionEl.disabled = true;
+          actionEl.textContent = "Memeriksa...";
           try {
             const rel = await ApiService.checkUpdate();
             if (!rel || !rel.tag_name) {
@@ -2772,21 +2065,16 @@
           } catch (_) {
             Utils.toast("Gagal memeriksa update. Coba lagi nanti.");
           } finally {
-            updateBtn.disabled = false;
-            updateBtn.textContent = "Cek Update";
+            actionEl.disabled = false;
+            actionEl.textContent = "Cek Update";
           }
-        };
-      }
-
-      if (isCustom) {
-        liveModelsLoaded = true;
-        this._loadModelList(currentModel);
-      }
+        }
+      });
     },
 
     async _loadModelList(currentModel) {
-      const listEl = document.getElementById("set-model-list");
-      const statusEl = document.getElementById("set-model-status");
+      const listEl = UIRenderer.byId("set-model-list");
+      const statusEl = UIRenderer.byId("set-model-status");
       if (!listEl) return;
 
       const rawKey = localStorage.getItem(Config.STORAGE_KEYS.GEMINI_API_KEY);
@@ -2801,7 +2089,7 @@
         : null;
 
       if (!apiKey) {
-        listEl.innerHTML = `<div style="text-align:center; padding:12px; opacity:0.5; font-size:11px;">API Key belum diset. Kamu tetap bisa memilih model preset di atas.</div>`;
+        listEl.innerHTML = `<div style="text-align:center; padding:12px; color:var(--text-secondary); font-size:11px;">API Key belum diset. Kamu tetap bisa memilih model preset di atas.</div>`;
         if (statusEl) statusEl.textContent = "Preset";
         return;
       }
@@ -2823,7 +2111,7 @@
 
       const data = await ApiService.fetchGeminiModels(apiKey);
       if (!data || !data.models) {
-        listEl.innerHTML = `<div style="text-align:center; padding:12px; color:#fb923c; font-size:11px;">Gagal memuat daftar model live. Gunakan preset di atas.</div>`;
+        listEl.innerHTML = `<div style="text-align:center; padding:12px; color:var(--accent); font-size:11px;">Gagal memuat daftar model live. Gunakan preset di atas.</div>`;
         if (statusEl) statusEl.textContent = "Preset";
         return;
       }
@@ -2840,7 +2128,7 @@
       if (statusEl) statusEl.textContent = `${models.length} model tersedia`;
 
       if (!models.length) {
-        listEl.innerHTML = `<div style="text-align:center; padding:12px; opacity:0.5; font-size:11px;">Tidak ada model flash lain yang tersedia.</div>`;
+        listEl.innerHTML = `<div style="text-align:center; padding:12px; color:var(--text-secondary); font-size:11px;">Tidak ada model flash lain yang tersedia.</div>`;
         return;
       }
 
@@ -2855,34 +2143,24 @@
 
           return `
           <div class="mentari-model-item ${isActive ? "is-active" : ""} ${isLimited ? "is-limited" : ""}" data-model="${Utils.escapeHtml(modelId)}">
-            <div class="model-state-dot"></div>
+            <div style="width:8px; height:8px; border-radius:50%; flex-shrink:0; background:${isActive ? "var(--accent)" : isLimited ? "var(--accent)" : "var(--border-strong)"};"></div>
             <div style="flex:1; min-width:0;">
-              <div class="model-title" style="font-size:12px; font-weight:${isActive ? "700" : "500"}; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
+              <div style="font-size:12px; font-weight:${isActive ? "700" : "500"}; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
                 ${Utils.escapeHtml(m.displayName || modelId)}
-                ${isLimited ? "<span class='model-limit-badge'>LIMIT</span>" : ""}
+                ${isLimited ? `<span style="display:inline-flex;align-items:center;margin-left:6px;padding:1px 5px;border-radius:4px;background:var(--accent-soft);color:var(--accent);font-size:9px;font-weight:700;">LIMIT</span>` : ""}
               </div>
-              <div class="model-id-sub" style="font-size:10px; opacity:0.55; margin-top:1px;">models/${Utils.escapeHtml(modelId)}</div>
+              <div style="font-size:10px; color:var(--text-secondary); margin-top:1px;">models/${Utils.escapeHtml(modelId)}</div>
             </div>
-            ${isActive ? `<span class="ms" style="color:#f97316; font-size:16px; flex-shrink:0;">check_circle</span>` : ""}
+            ${isActive ? `<span style="color:var(--accent); flex-shrink:0;">${ico("check", 15)}</span>` : ""}
           </div>
         `;
         })
         .join("");
 
-      listEl.querySelectorAll(".mentari-model-item").forEach((item) => {
-        item.onclick = (e) => {
-          e.stopPropagation();
-          const val = item.dataset.model;
-          Utils.save(Config.STORAGE_KEYS.GEMINI_MODEL, val);
-          Utils.toast("Model diperbarui: " + val);
-          setTimeout(() => location.reload(), 600);
-        };
-      });
-
-      const activeEl = listEl.querySelector(
-        `[data-model="${CSS?.escape ? CSS.escape(currentModel) : currentModel}"]`,
-      );
-      if (activeEl) activeEl.scrollIntoView({ block: "nearest" });
+      const activeEl = Array.from(
+        listEl.querySelectorAll(".mentari-model-item"),
+      ).find((item) => item.dataset.model === currentModel);
+      activeEl?.scrollIntoView?.({ block: "nearest" });
     },
   };
 
@@ -2891,8 +2169,6 @@
       if (localStorage.getItem(Config.STORAGE_KEYS.GEMINI_ENABLED) === null) {
         Utils.save(Config.STORAGE_KEYS.GEMINI_ENABLED, true);
       }
-      Utils.injectMaterialIcons();
-      UIRenderer.injectStyles();
       UIRenderer.createPopup();
       this.intercept();
 
@@ -2962,12 +2238,14 @@
       window.fetch = async function () {
         const init = arguments[1];
         if (init?.headers) {
-          const headers = new Headers(init.headers);
-          if (headers.get("Authorization"))
-            self.handleToken(headers.get("Authorization"));
+          const auth =
+            typeof Headers === "function"
+              ? new Headers(init.headers).get("Authorization")
+              : init.headers.Authorization || init.headers.authorization;
+          if (auth) self.handleToken(auth);
         }
         const res = await origFetch.apply(this, arguments);
-        if (res.headers.get("Authorization"))
+        if (res?.headers?.get?.("Authorization"))
           self.handleToken(res.headers.get("Authorization"));
         return res;
       };
@@ -3038,7 +2316,7 @@
 
         State.notifsSynced = false;
         if (
-          document.getElementById("notif-tab-tab")?.classList.contains("active")
+          UIRenderer.byId("notif-tab-tab")?.classList.contains("active")
         ) {
           this.syncLecturerNotifications(State.courseDataList, true);
         }
@@ -3133,11 +2411,12 @@
       }
     },
     captureForumUiState() {
-      const forum = document.getElementById("forum-tab-tab");
+      const forum = UIRenderer.byId("forum-tab-tab");
       if (!forum) return null;
 
       const forumRect = forum.getBoundingClientRect();
       const anchor = Array.from(forum.querySelectorAll(".section-header"))
+        .filter((header) => !header.closest("[hidden]"))
         .map((header) => ({
           header,
           rect: header.getBoundingClientRect(),
@@ -3165,24 +2444,25 @@
     },
     restoreForumUiState(uiState) {
       if (!uiState) return;
-      const forum = document.getElementById("forum-tab-tab");
+      const forum = UIRenderer.byId("forum-tab-tab");
       if (!forum) return;
 
       uiState.openSections.forEach(({ id, scrollTop }) => {
-        const section = document.getElementById(id);
+        const section = UIRenderer.byId(id);
         if (!section) return;
         section.classList.add("active");
-        section
-          .closest(".section-card")
-          ?.querySelector(".section-toggle")
-          ?.classList.add("active");
+        const card = section.closest(".section-card");
+        card?.querySelector(".section-toggle")?.classList.add("active");
+        card
+          ?.querySelector(".section-header")
+          ?.setAttribute("aria-expanded", "true");
         section.scrollTop = scrollTop;
         ForumRenderer.loadSectionData(section);
       });
 
       const restoreScroll = () => {
         if (uiState.anchor?.id) {
-          const section = document.getElementById(uiState.anchor.id);
+          const section = UIRenderer.byId(uiState.anchor.id);
           const header = section
             ?.closest(".section-card")
             ?.querySelector(
@@ -3216,17 +2496,15 @@
   };
 
   let activeOutsideClickHandler = null;
+  let activeEscapeHandler = null;
   let outsideClickTimer = null;
 
-  window.toggleTokenPopup = () => {
-    let p = document.getElementById("token-runner-popup");
-    if (!p) {
-      UIRenderer.injectStyles();
-      UIRenderer.createPopup();
-      p = document.getElementById("token-runner-popup");
-    }
+  function closePopup(p) {
     if (!p) return;
-
+    p.classList.remove("active");
+    if (State.isGuideOpen) {
+      UIRenderer.setGuideOpen(false);
+    }
     if (outsideClickTimer) {
       clearTimeout(outsideClickTimer);
       outsideClickTimer = null;
@@ -3235,29 +2513,68 @@
       document.removeEventListener("mousedown", activeOutsideClickHandler);
       activeOutsideClickHandler = null;
     }
+    if (activeEscapeHandler) {
+      document.removeEventListener("keydown", activeEscapeHandler);
+      activeEscapeHandler = null;
+    }
+  }
+
+  window.toggleTokenPopup = () => {
+    let p = document.getElementById("token-runner-popup");
+    if (!p || !p.shadowRoot) {
+      UIRenderer.createPopup();
+      p = document.getElementById("token-runner-popup");
+    }
+    if (!p) return;
 
     if (!p.classList.contains("active")) {
+      if (outsideClickTimer) {
+        clearTimeout(outsideClickTimer);
+        outsideClickTimer = null;
+      }
+      if (activeOutsideClickHandler) {
+        document.removeEventListener("mousedown", activeOutsideClickHandler);
+        activeOutsideClickHandler = null;
+      }
+      if (activeEscapeHandler) {
+        document.removeEventListener("keydown", activeEscapeHandler);
+        activeEscapeHandler = null;
+      }
+
       document
         .getElementById("gemini-chat-container")
         ?.classList.remove("active");
-      document
-        .getElementById("mentari-guide-container")
-        ?.classList.remove("active");
-      UIRenderer.updatePosition();
+      Utils.applyTheme();
       p.classList.add("active");
+
       activeOutsideClickHandler = (e) => {
-        if (
-          !p.contains(e.target) &&
-          !document
-            .getElementById("mentari-header-toggle")
-            ?.contains(e.target) &&
-          !e.target?.closest?.(".toast")
-        ) {
-          p.classList.remove("active");
-          document.removeEventListener("mousedown", activeOutsideClickHandler);
-          activeOutsideClickHandler = null;
+        const path =
+          typeof e?.composedPath === "function"
+            ? e.composedPath()
+            : [e?.target];
+        const headerToggle = document.getElementById("mentari-header-toggle");
+        const toastLayer = document.getElementById("mentari-toast-layer");
+        const inPanel =
+          path.includes(p) ||
+          (e?.target && typeof p.contains === "function" && p.contains(e.target));
+        const inHeader =
+          headerToggle &&
+          (path.includes(headerToggle) || headerToggle.contains?.(e?.target));
+        const inToast =
+          toastLayer &&
+          (path.includes(toastLayer) || toastLayer.contains?.(e?.target));
+        if (!inPanel && !inHeader && !inToast) {
+          closePopup(p);
         }
       };
+
+      activeEscapeHandler = (e) => {
+        if (e.key === "Escape") {
+          closePopup(p);
+        }
+      };
+
+      document.addEventListener("keydown", activeEscapeHandler);
       outsideClickTimer = setTimeout(() => {
         outsideClickTimer = null;
         if (p.classList.contains("active") && activeOutsideClickHandler) {
@@ -3265,7 +2582,7 @@
         }
       }, 50);
     } else {
-      p.classList.remove("active");
+      closePopup(p);
     }
   };
 

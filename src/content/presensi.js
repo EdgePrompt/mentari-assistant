@@ -1,6 +1,6 @@
 (() => {
   const Config = {
-    APP_VERSION: '1.1.0',
+    APP_VERSION: '1.2.0',
     STYLES: `
       #mentari-presensi-popup {
         position: fixed;

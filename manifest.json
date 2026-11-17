@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Mentari Assistant",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "description": "Asisten untuk pantau forum diskusi, bantu pengerjaan kuis, kuisioner, dan akses cepat di MENTARI UNPAM.",
   "permissions": ["scripting", "activeTab"],
   "host_permissions": [
@@ -54,6 +54,7 @@
     {
       "resources": [
         "src/content/token.js",
+        "src/content/panelUI.js",
         "src/content/apiKeyManager.js",
         "src/content/guidebook.js",
         "src/assets/icon-32.png",
