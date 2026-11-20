@@ -82,7 +82,7 @@
   }
 
   const SurveyConfig = {
-    APP_VERSION: '1.2.0',
+    APP_VERSION: '1.3.0',
     STYLES: `
       #quick-survey-popup-root {
         position: fixed;

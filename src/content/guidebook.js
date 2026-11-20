@@ -12,13 +12,13 @@
 
   function render(containerEl, options = {}) {
     if (!containerEl) return;
-    const { version = "1.2.0", onBack } = options || {};
+    const { version = "1.3.0", onBack } = options || {};
     const ico =
       typeof window !== "undefined" && typeof window.MentariPanelUI?.icon === "function"
         ? window.MentariPanelUI.icon
         : () => "";
 
-    const safeVersion = escapeHtml(version || "1.2.0");
+    const safeVersion = escapeHtml(version || "1.3.0");
 
     const sections = [
       {
@@ -33,14 +33,14 @@
         icon: "forum",
         title: "Balas Forum & Notifikasi Dosen",
         desc: "Buka pertemuan di tab Tugas untuk melihat soal diskusi dan membalas langsung lewat tombol Balas tanpa berpindah halaman.",
-        tip: "Buka tab Notif untuk mengecek balasan terbaru dari dosen di seluruh kelas.",
+        tip: "Tab Notif otomatis menyaring balasan dosen ke reply kamu dan dilengkapi tombol hapus.",
       },
       {
         badge: "Kuis & Kuesioner",
         icon: "quiz",
         title: "Pengerjaan Kuis & Kuesioner Cepat",
         desc: "Klik tombol Mulai Quiz di pertemuan untuk membuka halaman ujian beserta bantuan AI. Aktif atau matikan Auto Finish Quiz di tab Atur sesuai kebutuhan.",
-        tip: "Untuk kuesioner pertemuan, klik ikon petir untuk isi otomatis 1-klik atau klik barisnya untuk membuka halaman asli.",
+        tip: "Untuk kuesioner pertemuan, klik tombol play atau baris Kuesioner di bawah Posttest — halaman kuesioner akan terbuka dan terisi otomatis.",
       },
       {
         badge: "API Key & Model",

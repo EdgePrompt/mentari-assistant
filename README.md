@@ -6,8 +6,8 @@
 
 **Ekstensi browser untuk memantau forum, diskusi, kuis, dan presensi di portal MENTARI UNPAM.**
 
-[![Version](https://img.shields.io/badge/versi-1.2.0-f97316?style=for-the-badge)](https://github.com/EdgePrompt/mentari-assistant/releases/latest)
-[![Releases](https://img.shields.io/badge/download-Release%20v1.2.0-22c55e?style=for-the-badge&logo=github&logoColor=white)](https://github.com/EdgePrompt/mentari-assistant/releases/latest)
+[![Version](https://img.shields.io/badge/versi-1.3.0-f97316?style=for-the-badge)](https://github.com/EdgePrompt/mentari-assistant/releases/latest)
+[![Releases](https://img.shields.io/badge/download-Release%20v1.3.0-22c55e?style=for-the-badge&logo=github&logoColor=white)](https://github.com/EdgePrompt/mentari-assistant/releases/latest)
 [![License](https://img.shields.io/badge/license-MIT-6b7280?style=for-the-badge)](LICENSE)
 
 [Fitur Utama](#-fitur-utama) • [Perangkat & Browser](#-dukungan-perangkat--browser) • [Cara Pasang](#-cara-pasang) • [Pasang API Key Gemini](#-pasang-api-key-gemini) • [Lisensi](#-lisensi--atribusi)
@@ -41,7 +41,7 @@
 ## 🚀 Cara Pasang
 
 ### Desktop (Chrome / Edge / Brave / Chromium)
-1. Unduh file **`mentari-assistant-v1.2.0.zip`** di halaman **[GitHub Releases](https://github.com/EdgePrompt/mentari-assistant/releases/latest)**, lalu ekstrak ke satu folder khusus.
+1. Unduh file **`mentari-assistant-v1.3.0.zip`** di halaman **[GitHub Releases](https://github.com/EdgePrompt/mentari-assistant/releases/latest)**, lalu ekstrak ke satu folder khusus.
 2. Buka halaman ekstensi browser (`chrome://extensions/` atau `edge://extensions/`).
 3. Aktifkan **Developer mode** di pojok kanan atas.
 4. Klik **Load unpacked**, lalu pilih folder hasil ekstrak yang berisi file `manifest.json`.
@@ -49,7 +49,7 @@
 
 ### HP / Tablet (Android & iOS)
 1. Pasang salah satu browser mobile yang mendukung ekstensi (**Mises Browser**, **Lemur Browser**, **Quetta**, atau **Kiwi Browser** untuk Android; **Mises Browser** untuk iOS).
-2. Unduh file **`mentari-assistant-v1.2.0.zip`** dari halaman **[GitHub Releases](https://github.com/EdgePrompt/mentari-assistant/releases/latest)**.
+2. Unduh file **`mentari-assistant-v1.3.0.zip`** dari halaman **[GitHub Releases](https://github.com/EdgePrompt/mentari-assistant/releases/latest)**.
 3. Buka menu **Extensions** di browser tersebut, aktifkan **Developer mode**, lalu pilih **Load zip / `.zip` file** (atau ekstrak terlebih dahulu lalu pilih folder `manifest.json` sesuai browser yang dipakai).
 4. Login ke [mentari.unpam.ac.id](https://mentari.unpam.ac.id/) dan ketuk ikon **Mentari Assistant** di bar atas.
 

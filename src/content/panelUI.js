@@ -34,6 +34,7 @@
     key: '<path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"/>',
     sparkle: '<path d="M12 3l1.912 5.813a2 2 0 0 0 1.275 1.275L21 12l-5.813 1.912a2 2 0 0 0-1.275 1.275L12 21l-1.912-5.813a2 2 0 0 0-1.275-1.275L3 12l5.813-1.912a2 2 0 0 0 1.275-1.275L12 3z"/>',
     warning: '<path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>',
+    trash: '<polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/>',
   };
 
   function escapeHtml(str) {
@@ -75,6 +76,9 @@
       --success-soft: rgba(34, 197, 94, 0.14);
       --info: #38bdf8;
       --info-soft: rgba(56, 189, 248, 0.14);
+      --danger: #ef4444;
+      --danger-text: #f87171;
+      --danger-soft: rgba(239, 68, 68, 0.14);
       --shadow-panel: 0 22px 54px rgba(0, 0, 0, 0.58);
       color-scheme: dark;
       background: transparent;
@@ -116,6 +120,9 @@
       --success-soft: rgba(22, 163, 74, 0.10);
       --info: #0284c7;
       --info-soft: rgba(2, 132, 199, 0.10);
+      --danger: #dc2626;
+      --danger-text: #b91c1c;
+      --danger-soft: rgba(220, 38, 38, 0.10);
       --shadow-panel: 0 18px 46px rgba(15, 23, 42, 0.18);
       color-scheme: light;
     }
@@ -474,6 +481,15 @@
       background: var(--success-soft);
       border-color: color-mix(in srgb, var(--success) 30%, transparent);
       color: var(--success-text);
+    }
+    .btn-danger {
+      background: var(--danger-soft);
+      border-color: color-mix(in srgb, var(--danger) 30%, transparent);
+      color: var(--danger-text);
+    }
+    .btn-danger:hover:not(:disabled) {
+      background: color-mix(in srgb, var(--danger) 22%, transparent);
+      border-color: color-mix(in srgb, var(--danger) 45%, transparent);
     }
     .btn-sm {
       height: 28px;
@@ -1018,10 +1034,28 @@
     /* Notif Tab */
     .notif-toolbar {
       display: flex;
+      flex-direction: column;
+      gap: 8px;
+      margin-bottom: 10px;
+    }
+    .notif-toolbar-top {
+      display: flex;
       align-items: center;
       justify-content: space-between;
       gap: 8px;
-      margin-bottom: 10px;
+      flex-wrap: wrap;
+    }
+    .notif-toolbar-actions {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex-shrink: 0;
+    }
+    .notif-scope-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
     }
     .notif-card {
       padding: 12px;
@@ -1030,6 +1064,21 @@
       border: 1px solid var(--border-subtle);
       border-left: 3px solid var(--accent);
       background: var(--bg-surface);
+    }
+    .notif-card-course {
+      font-size: 10.5px;
+      font-weight: 600;
+      color: var(--text-secondary);
+      margin-bottom: 5px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .notif-card-footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
     }
 
     /* Settings Tab */
@@ -1442,7 +1491,7 @@
         <div class="header-brand">
           <img class="popup-logo-img" alt="Mentari Assistant" />
           <span class="popup-title">Mentari Assistant</span>
-          <span class="popup-version-badge">v${escapeHtml(appVersion || "1.2.0")}</span>
+          <span class="popup-version-badge">v${escapeHtml(appVersion || "1.3.0")}</span>
         </div>
         <div class="header-actions">
           <button type="button" id="panel-guide-btn" class="icon-btn" title="Buku Panduan" aria-label="Buka Panduan" aria-pressed="false">${icon("help", 16)}</button>

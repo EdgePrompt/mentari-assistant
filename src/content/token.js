@@ -1,5 +1,5 @@
 (function () {
-  const APP_VERSION = "1.2.0";
+  const APP_VERSION = "1.3.0";
   console.log("Mentari Assistant Token script loaded.");
 
   const FALLBACK_MODELS = [
@@ -22,6 +22,8 @@
       GEMINI_API_KEY: "geminiApiKey",
       GEMINI_MODEL_STATS: "gemini_model_stats",
       THEME_MODE: "mentari_panel_theme",
+      DISMISSED_NOTIFS: "mentari_dismissed_notifs",
+      NOTIF_SCOPE: "mentari_notif_scope",
     },
     API: {
       BASE_URL: "https://mentari.unpam.ac.id/api",
@@ -206,6 +208,44 @@
       const mode = this.getThemeMode();
       window.MentariPanelUI?.applyTheme(host, mode);
     },
+    getNotifScope() {
+      try {
+        const raw = localStorage.getItem(Config.STORAGE_KEYS.NOTIF_SCOPE);
+        return raw === "all" ? "all" : "mine";
+      } catch (e) {
+        return "mine";
+      }
+    },
+    setNotifScope(scope) {
+      try {
+        localStorage.setItem(
+          Config.STORAGE_KEYS.NOTIF_SCOPE,
+          scope === "all" ? "all" : "mine",
+        );
+      } catch (e) {}
+    },
+    getDismissedNotifIds() {
+      const raw = this.get(Config.STORAGE_KEYS.DISMISSED_NOTIFS);
+      return new Set(Array.isArray(raw) ? raw.map(String) : []);
+    },
+    addDismissedNotifIds(ids) {
+      const current = this.get(Config.STORAGE_KEYS.DISMISSED_NOTIFS);
+      const merged = Array.isArray(current) ? current.map(String) : [];
+      const seen = new Set(merged);
+      (Array.isArray(ids) ? ids : [ids]).forEach((id) => {
+        const s = String(id || "").trim();
+        if (s && !seen.has(s)) {
+          seen.add(s);
+          merged.push(s);
+        }
+      });
+      this.save(Config.STORAGE_KEYS.DISMISSED_NOTIFS, merged.slice(-500));
+    },
+    getNotifId(item) {
+      const id = item?.id != null ? String(item.id).trim() : "";
+      if (id) return id;
+      return `${item?.url || ""}|${item?.date || ""}|${String(item?.content || "").slice(0, 40)}`;
+    },
     updateQuota(headers) {
       try {
         const quota = {
@@ -286,24 +326,6 @@
         body: JSON.stringify(payload),
       });
     },
-    async fetchKuesioner(courseCode, sectionCode) {
-      return this.fetch(
-        `${Config.API.BASE_URL}/kuesioner/${courseCode}/${sectionCode}`,
-      );
-    },
-    async submitKuesioner(courseCode, sectionCode, questions) {
-      return this.fetch(`${Config.API.BASE_URL}/kuesioner/submit`, {
-        method: "POST",
-        body: JSON.stringify({
-          kode_section: sectionCode,
-          kode_course: courseCode,
-          kuesioner: questions.map((question) => ({
-            id_kuesioner: question.id,
-            jawaban: 1,
-          })),
-        }),
-      });
-    },
     async checkUpdate() {
       try {
         const r = await fetch(Config.API.GITHUB_API);
@@ -379,7 +401,10 @@
           State.isGuideOpen = false;
           State.currentTab = tabId;
           if (tabId === "notif-tab") {
-            App.syncLecturerNotifications(State.courseDataList);
+            const hasLegacyNotifs = State.lecturerNotifications.some(
+              (n) => typeof n?.isReplyToMe !== "boolean",
+            );
+            App.syncLecturerNotifications(State.courseDataList, hasLegacyNotifs);
           }
         },
       });
@@ -548,20 +573,15 @@
         const kuesioner = s.sub_section.find(
           (i) => i.kode_template === "KUESIONER" || i.tipe === "QUESIONER",
         );
-        if (!forum && !kuesioner) return false;
+        const postTest = s.sub_section.find(
+          (i) => i.kode_template === "POST_TEST" && i.id,
+        );
         if (kuesioner?.completion === true) return false;
         if (forum?.warningAlert?.includes("Soal forum diskusi belum tersedia"))
           return false;
-        const postTest = s.sub_section.find(
-          (i) => i.kode_template === "POST_TEST",
-        );
-        if (
-          forum &&
-          forum.completion === true &&
-          !kuesioner &&
-          (!postTest || postTest.completion === true || !postTest.id)
-        )
-          return false;
+        const hasCompletedPostTestOnly =
+          !forum && !kuesioner && Boolean(postTest && postTest.completion === true);
+        if (!forum && !kuesioner && !hasCompletedPostTestOnly) return false;
         return true;
       });
 
@@ -625,7 +645,36 @@
     },
 
     renderSection(s, c, idx) {
-      const itemsHtml = (s.sub_section || [])
+      const rawSubs = Array.isArray(s.sub_section) ? s.sub_section : [];
+      const isKuesionerSub = (i) =>
+        i && (i.kode_template === "KUESIONER" || i.tipe === "QUESIONER");
+      const existingKuesioner = rawSubs.find(isKuesionerSub);
+      const nonKuesionerSubs = rawSubs.filter((i) => !isKuesionerSub(i));
+      const kuesionerItem =
+        existingKuesioner ||
+        (c.kode_course && s.kode_section
+          ? {
+              id: `kuesioner-${s.kode_section}`,
+              kode_template: "KUESIONER",
+              tipe: "QUESIONER",
+              judul: "Kuesioner",
+              completion: false,
+            }
+          : null);
+
+      const orderedSubs = [...nonKuesionerSubs];
+      if (kuesionerItem) {
+        const postTestIdx = orderedSubs.findIndex(
+          (i) => i.kode_template === "POST_TEST",
+        );
+        if (postTestIdx >= 0) {
+          orderedSubs.splice(postTestIdx + 1, 0, kuesionerItem);
+        } else {
+          orderedSubs.push(kuesionerItem);
+        }
+      }
+
+      const itemsHtml = orderedSubs
         .map((item) => this.renderItem(item, s, c))
         .filter((html) => html && html.trim() !== "")
         .join("");
@@ -730,8 +779,8 @@
         actionUrl = cardUrl;
         iconClass = "icon-quiz";
         iconName = "kuesioner";
-        actionLabel = "Isi Kuesioner Otomatis";
-        actionIcon = "bolt";
+        actionLabel = "Mulai Kuesioner";
+        actionIcon = "play";
       } else if (isTugas) {
         iconClass = "icon-material";
         iconName = "doc";
@@ -759,9 +808,7 @@
       const btnTitle = isFinished ? "Sudah Selesai" : actionLabel;
 
       let rightActionHtml = "";
-      if (isKuesioner) {
-        rightActionHtml = `<button type="button" class="btn btn-icon-sq ${isFinished ? "" : "btn-primary"} kuesioner-submit-btn" title="${Utils.escapeHtml(btnTitle)}" ${isFinished ? "disabled" : ""} data-action="submit-kuesioner" data-course-code="${Utils.escapeHtml(c.kode_course)}" data-section-code="${Utils.escapeHtml(s.kode_section)}">${ico(btnIcon, 14)}</button>`;
-      } else if (actionUrl !== "#") {
+      if (actionUrl !== "#") {
         if (isFinished) {
           rightActionHtml = `<button type="button" class="btn btn-icon-sq" title="${Utils.escapeHtml(btnTitle)}" disabled>${ico("lock", 14)}</button>`;
         } else {
@@ -938,47 +985,8 @@
             UIRenderer.qsa(".topics-container"),
           ).find((node) => node.dataset.forumId === forumId);
           if (container) this.toggleForumReplyForm(container);
-          return;
-        }
-
-        if (action === "submit-kuesioner") {
-          e.stopPropagation();
-          this.handleKuesionerSubmit(actionEl);
         }
       });
-    },
-
-    async handleKuesionerSubmit(button) {
-      if (!button || button.disabled) return;
-
-      const courseCode = button.dataset.courseCode;
-      const sectionCode = button.dataset.sectionCode;
-      const originalContent = button.innerHTML;
-      button.disabled = true;
-      button.innerHTML = ico("refresh", 14, "mentari-spin");
-
-      try {
-        Utils.progressToast("Sedang mengambil pertanyaan kuisioner...");
-        const detail = await ApiService.fetchKuesioner(courseCode, sectionCode);
-        const questions = detail?.kuesioner || [];
-        if (!questions.length) throw new Error("Pertanyaan kuisioner kosong");
-
-        Utils.progressToast("Sedang mengirim jawaban kuisioner...");
-        await ApiService.submitKuesioner(courseCode, sectionCode, questions);
-        Utils.closeProgressToast();
-        Utils.successToast("Kuisioner berhasil dikirim");
-        setTimeout(() => App.refreshData(true), 700);
-      } catch (error) {
-        console.warn("[Mentari Assistant] Gagal submit kuisioner", {
-          kode_course: courseCode,
-          kode_section: sectionCode,
-          error,
-        });
-        Utils.closeProgressToast();
-        Utils.toast("Kuisioner gagal dikirim");
-        button.disabled = false;
-        button.innerHTML = originalContent;
-      }
     },
 
     applyFilters() {
@@ -1702,36 +1710,71 @@
       if (emptyEl) emptyEl.hidden = visibleCount > 0;
     },
 
+    _filterNotifs(items = []) {
+      const list = Array.isArray(items) ? items : [];
+      const scope = Utils.getNotifScope();
+      const dismissed = Utils.getDismissedNotifIds();
+      const activeAll = list.filter(
+        (item) => !dismissed.has(Utils.getNotifId(item)),
+      );
+      const activeMine = activeAll.filter((item) => item.isReplyToMe === true);
+      const visibleList = scope === "all" ? activeAll : activeMine;
+      return { scope, activeAll, activeMine, visibleList };
+    },
+
     notif(items = []) {
       const el = UIRenderer.byId("notif-tab-tab");
-      const list = Array.isArray(items) ? items : [];
+      const { scope, activeAll, activeMine, visibleList } =
+        this._filterNotifs(items);
 
       const badge = UIRenderer.byId("notif-tab-badge");
       if (badge) {
-        badge.textContent = list.length ? String(list.length) : "";
-        badge.style.display = list.length ? "inline-flex" : "none";
+        badge.textContent = visibleList.length ? String(visibleList.length) : "";
+        badge.style.display = visibleList.length ? "inline-flex" : "none";
       }
 
       if (!el) return;
 
       const toolbarHtml = `
         <div class="notif-toolbar">
-          <span style="font-size:11.5px; font-weight:600; color:var(--text-secondary);">
-            ${list.length ? `${list.length} balasan dosen` : "Balasan dosen dari forum"}
-          </span>
-          <button type="button" id="notif-refresh-btn" class="btn btn-sm" data-action="refresh-notifs">
-            ${ico("refresh", 13)}<span>Periksa Sekarang</span>
-          </button>
+          <div class="notif-toolbar-top">
+            <span style="font-size:11.5px; font-weight:600; color:var(--text-secondary);">
+              ${visibleList.length ? `${visibleList.length} notifikasi` : "Balasan dosen dari forum"}
+            </span>
+            <div class="notif-toolbar-actions">
+              <button type="button" id="notif-refresh-btn" class="btn btn-sm" data-action="refresh-notifs">
+                ${ico("refresh", 13)}<span>Periksa Sekarang</span>
+              </button>
+              <button type="button" id="notif-clear-all-btn" class="btn btn-sm btn-danger" data-action="clear-all-notifs" ${visibleList.length === 0 ? "disabled" : ""}>
+                ${ico("trash", 12)}<span>Hapus Semua</span>
+              </button>
+            </div>
+          </div>
+          <div class="notif-scope-bar">
+            <span style="font-size:11px; color:var(--text-secondary); font-weight:600;">Tampilkan</span>
+            <div class="segmented" role="group" aria-label="Filter notifikasi">
+              <button type="button" class="segmented-btn${scope === "mine" ? " active" : ""}" data-action="set-notif-scope" data-scope="mine" aria-pressed="${scope === "mine" ? "true" : "false"}">Ke Saya (${activeMine.length})</button>
+              <button type="button" class="segmented-btn${scope === "all" ? " active" : ""}" data-action="set-notif-scope" data-scope="all" aria-pressed="${scope === "all" ? "true" : "false"}">Semua (${activeAll.length})</button>
+            </div>
+          </div>
         </div>
       `;
 
-      if (!list.length) {
+      if (!visibleList.length) {
+        const emptyTitle =
+          scope === "mine" && activeAll.length > 0
+            ? "Belum Ada Balasan ke Kamu"
+            : "Belum Ada Notifikasi";
+        const emptyDesc =
+          scope === "mine" && activeAll.length > 0
+            ? "Tidak ada balasan dosen pada reply kamu. Klik Semua untuk melihat balasan dosen lainnya."
+            : "Belum ada balasan terbaru dari dosen di forum diskusi kamu.";
         el.innerHTML = `
           ${toolbarHtml}
           <div class="empty-state">
             <div class="empty-icon">${ico("notif", 28)}</div>
-            <div class="empty-title">Belum Ada Notifikasi</div>
-            <div class="empty-desc">Belum ada balasan terbaru dari dosen di forum diskusi kamu.</div>
+            <div class="empty-title">${emptyTitle}</div>
+            <div class="empty-desc">${emptyDesc}</div>
           </div>`;
         this.bindNotifEvents(el);
         return;
@@ -1744,14 +1787,19 @@
         minute: "2-digit",
       };
 
-      const cardsHtml = list
+      const cardsHtml = visibleList
         .map((item) => {
+          const notifId = Utils.getNotifId(item);
           const dateLabel = item.date
             ? new Date(item.date).toLocaleDateString("id-ID", dateFmt)
             : "-";
           const itemUrl = Utils.safeUrl(item.url);
+          const courseLabel = item.courseTitle
+            ? `<div class="notif-card-course">${Utils.escapeHtml(item.courseTitle)}</div>`
+            : "";
           return `
             <div class="notif-card">
+              ${courseLabel}
               <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:8px; margin-bottom:6px;">
                 <div style="font-weight:700; font-size:12.5px; color:var(--accent);">${Utils.escapeHtml(item.lecturerName || "Dosen")}</div>
                 <div style="font-size:10.5px; color:var(--text-secondary); display:inline-flex; align-items:center; gap:4px; flex-shrink:0;">
@@ -1759,9 +1807,14 @@
                 </div>
               </div>
               <div class="notif-content" style="font-size:12px; color:var(--text-primary); line-height:1.5; margin-bottom:10px;">${Utils.escapeHtml(item.content)}</div>
-              <a href="${Utils.escapeHtml(itemUrl)}" target="_blank" rel="noopener noreferrer" class="btn btn-sm">
-                ${ico("external", 12)}<span>Lihat Diskusi</span>
-              </a>
+              <div class="notif-card-footer">
+                <a href="${Utils.escapeHtml(itemUrl)}" target="_blank" rel="noopener noreferrer" class="btn btn-sm">
+                  ${ico("external", 12)}<span>Lihat Diskusi</span>
+                </a>
+                <button type="button" class="btn btn-icon-sq btn-danger" data-action="dismiss-notif" data-notif-id="${Utils.escapeHtml(notifId)}" title="Hapus notifikasi" aria-label="Hapus notifikasi">
+                  ${ico("trash", 13)}
+                </button>
+              </div>
             </div>
           `;
         })
@@ -1776,11 +1829,44 @@
       el.dataset.delegated = "true";
 
       el.addEventListener("click", async (e) => {
-        const actionEl = getEventActionTarget(
-          e,
-          '[data-action="refresh-notifs"]',
-        );
+        const actionEl = getEventActionTarget(e, "[data-action]");
         if (!actionEl || actionEl.disabled) return;
+        const action = actionEl.dataset.action;
+
+        if (action === "set-notif-scope") {
+          e.stopPropagation();
+          const scope = actionEl.dataset.scope === "all" ? "all" : "mine";
+          Utils.setNotifScope(scope);
+          this.notif(State.lecturerNotifications);
+          return;
+        }
+
+        if (action === "dismiss-notif") {
+          e.stopPropagation();
+          const id = actionEl.dataset.notifId;
+          if (id) {
+            Utils.addDismissedNotifIds([id]);
+            this.notif(State.lecturerNotifications);
+            Utils.toast("Notifikasi dihapus");
+          }
+          return;
+        }
+
+        if (action === "clear-all-notifs") {
+          e.stopPropagation();
+          const { visibleList } = this._filterNotifs(
+            State.lecturerNotifications,
+          );
+          const ids = visibleList.map((item) => Utils.getNotifId(item));
+          if (ids.length) {
+            Utils.addDismissedNotifIds(ids);
+            this.notif(State.lecturerNotifications);
+            Utils.toast("Semua notifikasi dibersihkan");
+          }
+          return;
+        }
+
+        if (action !== "refresh-notifs") return;
         e.stopPropagation();
 
         if (!State.courseDataList.length) {
@@ -2265,6 +2351,7 @@
       if (isNewUser) {
         Utils.remove(Config.STORAGE_KEYS.COURSE_DATA);
         Utils.remove(Config.STORAGE_KEYS.LECTURER_NOTIFS);
+        Utils.remove(Config.STORAGE_KEYS.DISMISSED_NOTIFS);
         State.courseDataList = [];
         State.lecturerNotifications = [];
       }
@@ -2331,8 +2418,14 @@
       if (State.isSyncingNotifs || (!force && State.notifsSynced)) return;
       State.isSyncingNotifs = true;
       try {
+        const currentNim = String(
+          State.userInfo?.username || State.userInfo?.userId || "",
+        ).trim();
         const forumTargets = [];
         for (const course of courseDataList) {
+          const courseTitle = cleanCourseTitle(
+            course.coursename || course.nama_mata_kuliah || course.kode_course,
+          );
           for (const section of course.data || []) {
             const forumSub = section.sub_section?.find(
               (sub) => sub.kode_template === "FORUM_DISKUSI" && sub.id,
@@ -2340,6 +2433,7 @@
             if (forumSub) {
               forumTargets.push({
                 courseCode: course.kode_course,
+                courseTitle,
                 forumSubId: forumSub.id,
               });
             }
@@ -2347,7 +2441,7 @@
         }
 
         const nested = await Promise.all(
-          forumTargets.map(async ({ courseCode, forumSubId }) => {
+          forumTargets.map(async ({ courseCode, courseTitle, forumSubId }) => {
             try {
               const topicRes = await ApiService.fetchForumTopics(forumSubId);
               const topics = (topicRes?.topics || []).filter(
@@ -2359,8 +2453,22 @@
                     const replyRes = await ApiService.fetchForumReplies(
                       topic.id,
                     );
-                    const replies =
-                      replyRes?.replies || replyRes?.data || [];
+                    const replies = Array.isArray(replyRes?.data)
+                      ? replyRes.data
+                      : Array.isArray(replyRes?.replies)
+                        ? replyRes.replies
+                        : [];
+                    const ownReplyIds = new Set(
+                      replies
+                        .filter(
+                          (r) =>
+                            currentNim &&
+                            String(r.nim || r.mahasiswa?.nim || "").trim() ===
+                              currentNim &&
+                            r.id != null,
+                        )
+                        .map((r) => String(r.id)),
+                    );
                     return replies
                       .filter(
                         (r) =>
@@ -2375,7 +2483,20 @@
                           plain.length > 120
                             ? plain.substring(0, 120) + "..."
                             : plain;
+                        const parentId = r.id_parent ?? r.parent_id ?? null;
+                        const isReplyToMe = Boolean(
+                          currentNim &&
+                            parentId != null &&
+                            ownReplyIds.has(String(parentId)),
+                        );
+                        const notifId =
+                          r.id != null
+                            ? String(r.id)
+                            : `${topic.id}:${r.created_at || ""}:${trimmed.slice(0, 40)}`;
                         return {
+                          id: notifId,
+                          isReplyToMe,
+                          courseTitle,
                           lecturerName:
                             r.fullname ||
                             r.dosen?.nama_dosen ||
