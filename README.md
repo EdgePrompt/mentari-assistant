@@ -4,7 +4,7 @@
 
 # Mentari Assistant
 
-**Ekstensi browser untuk memantau forum, diskusi, kuis, dan presensi di portal MENTARI UNPAM.**
+**Ekstensi browser untuk memantau forum, diskusi, kuis, dan presensi di portal MENTARI UNPAM — pengembangan lanjut dari Mentari Mod dengan UI baru, dukungan tema gelap/terang, dan perbaikan keamanan.**
 
 [![Version](https://img.shields.io/badge/versi-1.3.0-f97316?style=for-the-badge)](https://github.com/EdgePrompt/mentari-assistant/releases/latest)
 [![Releases](https://img.shields.io/badge/download-Release%20v1.3.0-22c55e?style=for-the-badge&logo=github&logoColor=white)](https://github.com/EdgePrompt/mentari-assistant/releases/latest)
