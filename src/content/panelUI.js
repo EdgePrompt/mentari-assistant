@@ -947,12 +947,6 @@
     }
 
     /* Kelas / Students Tab */
-    .student-toolbar {
-      display: grid;
-      grid-template-columns: 1fr auto;
-      gap: 8px;
-      margin-bottom: 10px;
-    }
     .student-list-card {
       border: 1px solid var(--border-subtle);
       border-radius: 12px;
@@ -1405,27 +1399,6 @@
     if (typeof timer?.unref === "function") timer.unref();
   }
 
-  function progressToast(msg) {
-    const layer = ensureToastLayer();
-    if (!layer) return;
-    let t = document.getElementById("mentari-progress-toast");
-    if (!t) {
-      t = document.createElement("div");
-      t.id = "mentari-progress-toast";
-      t.className = "toast";
-      t.setAttribute("role", "status");
-      t.setAttribute("aria-live", "polite");
-      t.style.cssText =
-        "pointer-events:auto;background:#161920;color:#fb923c;border:1px solid rgba(249,115,22,0.4);padding:8px 14px;border-radius:10px;font-size:11.5px;font-weight:600;box-shadow:0 8px 24px rgba(0,0,0,0.45);display:inline-flex;align-items:center;gap:6px;white-space:nowrap;max-width:calc(100vw - 32px);overflow:hidden;text-overflow:ellipsis;";
-      layer.appendChild(t);
-    }
-    t.textContent = String(msg ?? "");
-  }
-
-  function closeProgressToast() {
-    removeElement(document.getElementById("mentari-progress-toast"));
-  }
-
   function setActiveTab(host, tabId, options = {}) {
     const sr = host?.shadowRoot;
     if (!sr) return;
@@ -1491,7 +1464,7 @@
         <div class="header-brand">
           <img class="popup-logo-img" alt="Mentari Assistant" />
           <span class="popup-title">Mentari Assistant</span>
-          <span class="popup-version-badge">v${escapeHtml(appVersion || "1.3.0")}</span>
+          <span class="popup-version-badge">v${escapeHtml(appVersion || "1.3.1")}</span>
         </div>
         <div class="header-actions">
           <button type="button" id="panel-guide-btn" class="icon-btn" title="Buku Panduan" aria-label="Buka Panduan" aria-pressed="false">${icon("help", 16)}</button>
@@ -1594,8 +1567,6 @@
     resolveTheme,
     applyTheme,
     toast,
-    progressToast,
-    closeProgressToast,
     setActiveTab,
     setGuideOpen,
     setLoading,

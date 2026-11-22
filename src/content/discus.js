@@ -1,55 +1,3 @@
-(() => {
-  try {
-    const rawModel = (localStorage.getItem("gemini_model") || "").replace(/"/g, "").trim();
-    if (rawModel === "gemini-1.5-flash" || rawModel === "gemini-2.0-flash") {
-      localStorage.removeItem("gemini_model");
-    }
-  } catch (_) {}
-
-  if (!window.__MENTARI_GEMINI_FETCH_PATCHED__) {
-    window.__MENTARI_GEMINI_FETCH_PATCHED__ = true;
-    const origFetch = window.fetch.bind(window);
-    const FALLBACK_MODELS = ["gemini-3.5-flash-lite", "gemini-3.1-flash-lite", "gemini-2.5-flash-lite"];
-    const DEPRECATED_MODELS = new Set(["gemini-1.5-flash", "gemini-2.0-flash"]);
-
-    window.fetch = async function (input, init) {
-      const urlStr = typeof input === "string" ? input : (input && input.url) || "";
-      if (!urlStr.includes("generativelanguage.googleapis.com/v1beta/models/") || !urlStr.includes(":generateContent")) {
-        return origFetch(input, init);
-      }
-
-      const match = urlStr.match(/models\/([^/:]+):generateContent/);
-      const requestedModel = match ? match[1] : null;
-      let targetUrl = urlStr;
-
-      if (requestedModel && DEPRECATED_MODELS.has(requestedModel)) {
-        targetUrl = urlStr.replace(`models/${requestedModel}:generateContent`, `models/${FALLBACK_MODELS[0]}:generateContent`);
-      }
-
-      let res = await origFetch(typeof input === "string" ? targetUrl : new Request(targetUrl, input), init);
-      if (res.ok || (res.status !== 404 && res.status !== 429 && res.status !== 503)) {
-        return res;
-      }
-
-      const effectiveModel = targetUrl.match(/models\/([^/:]+):generateContent/)?.[1];
-      const remaining = FALLBACK_MODELS.filter((m) => m !== effectiveModel);
-      for (const nextModel of remaining) {
-        await new Promise((r) => setTimeout(r, 400));
-        const fallbackUrl = targetUrl.replace(/models\/[^/:]+:generateContent/, `models/${nextModel}:generateContent`);
-        const retryRes = await origFetch(typeof input === "string" ? fallbackUrl : new Request(fallbackUrl, input), init);
-        res = retryRes;
-        if (retryRes.ok) {
-          return retryRes;
-        }
-        if (retryRes.status !== 404 && retryRes.status !== 429 && retryRes.status !== 503) {
-          return retryRes;
-        }
-      }
-      return res;
-    };
-  }
-})();
-
 /**
  * Mentari Assistant - Discus Helper Module
  */
@@ -382,6 +330,7 @@
     },
 
     injectButtons() {
+      if (!window.location.pathname.includes("/forum/")) return;
       document.querySelectorAll(".MuiStack-root .MuiButton-root.MuiButton-containedSuccess").forEach((replyBtn) => {
         if (replyBtn.parentElement.querySelector(".cari-jawaban-btn")) return;
         const root = replyBtn.closest(".MuiPaper-root, .discussion-post, [role='article']") || replyBtn.closest("div");
@@ -403,10 +352,24 @@
 
     init() {
       this.injectButtons();
-      new MutationObserver(() => this.injectButtons()).observe(document.body, {
-        childList: true,
-        subtree: true,
-      });
+      let rafId = 0;
+      const scheduleInject = () => {
+        if (typeof requestAnimationFrame !== "function") {
+          this.injectButtons();
+          return;
+        }
+        if (rafId) return;
+        rafId = requestAnimationFrame(() => {
+          rafId = 0;
+          this.injectButtons();
+        });
+      };
+      if (document.body) {
+        new MutationObserver(scheduleInject).observe(document.body, {
+          childList: true,
+          subtree: true,
+        });
+      }
     },
   };
 

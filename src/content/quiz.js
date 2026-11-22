@@ -251,7 +251,7 @@
 
     // Query Gemini with fallback models and one strict retry if answer marker is missing
     async askGeminiSingle(apiKey, question, options) {
-      const FALLBACK_MODELS = ["gemini-3.5-flash-lite", "gemini-3.1-flash-lite", "gemini-2.5-flash-lite", "gemini-2.0-flash"];
+      const FALLBACK_MODELS = ["gemini-3.5-flash-lite", "gemini-3.1-flash-lite", "gemini-2.5-flash-lite"];
       const rawPref = (localStorage.getItem("gemini_model") || "").replace(/"/g, "").trim();
       const storedRaw = (rawPref === "gemini-1.5-flash" || rawPref === "gemini-2.0-flash") ? "" : rawPref;
       // Build ordered list: stored preference first, then fallback chain without duplicates
@@ -275,7 +275,7 @@
           : { temperature: CONFIG.GEMINI.TEMPERATURE, topP: CONFIG.GEMINI.TOP_P, topK: CONFIG.GEMINI.TOP_K, maxOutputTokens: CONFIG.GEMINI.MAX_TOKENS };
 
         try {
-          const res = await fetch(`${CONFIG.GEMINI.ENDPOINT}/${model}:generateContent?key=${apiKey}`, {
+          const res = await fetch(`${CONFIG.GEMINI.ENDPOINT}/${model}:generateContent?key=${encodeURIComponent(apiKey)}`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({

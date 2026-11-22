@@ -1,6 +1,6 @@
 (() => {
   const Config = {
-    APP_VERSION: '1.3.0',
+    APP_VERSION: '1.3.1',
     STYLES: `
       #mentari-presensi-popup {
         position: fixed;
@@ -449,6 +449,14 @@
       link.href = 'https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20,400,0,0';
       document.head.appendChild(link);
     },
+    escapeHtml(str) {
+      return String(str ?? '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+    },
   };
 
   const UIRenderer = {
@@ -495,9 +503,9 @@
             </div>
 
             <div class="info-bar">
-              <div class="info-card"><div class="info-label">MAHASISWA</div><div class="info-value">${m.nama_mahasiswa}</div></div>
-              <div class="info-card"><div class="info-label">NIM</div><div class="info-value">${m.nim}</div></div>
-              <div class="info-card"><div class="info-label">SEMESTER</div><div class="info-value">${m.nama_semester_registrasi}</div></div>
+              <div class="info-card"><div class="info-label">MAHASISWA</div><div class="info-value">${Utils.escapeHtml(m.nama_mahasiswa)}</div></div>
+              <div class="info-card"><div class="info-label">NIM</div><div class="info-value">${Utils.escapeHtml(m.nim)}</div></div>
+              <div class="info-card"><div class="info-label">SEMESTER</div><div class="info-value">${Utils.escapeHtml(m.nama_semester_registrasi)}</div></div>
               <div class="info-card" style="background: rgba(249,115,22,0.08); border-color:#f97316;">
                 <div class="info-label" style="color:#fb923c;">TOTAL KEHADIRAN</div>
                 <div class="info-value" style="color:#f97316; font-size:16px;">${avgPercent}%</div>
@@ -549,11 +557,11 @@
       return `
         <div class="course-card" id="p-course-${idx}" style="cursor:pointer;">
           <div class="course-card-header">
-            <h2>${c.nama_mata_kuliah}</h2>
+            <h2>${Utils.escapeHtml(c.nama_mata_kuliah)}</h2>
             <div class="course-percentage" style="color:${color}; background:${bg};">${percent}%</div>
           </div>
           <div style="padding:12px 18px; display:flex; flex-wrap:wrap; gap:16px; font-size:12px; opacity:0.85;">
-            <div><span style="opacity:0.6;">SKS:</span> <b>${c.sks || 3}</b></div>
+            <div><span style="opacity:0.6;">SKS:</span> <b>${Utils.escapeHtml(c.sks || 3)}</b></div>
             <div><span style="opacity:0.6;">Hadir:</span> <b style="color:#4ade80;">${hadir}</b></div>
             <div><span style="opacity:0.6;">Mangkir:</span> <b style="color:#ef4444;">${total - hadir}</b></div>
             <div style="margin-left:auto; display:flex; align-items:center; color:#fb923c; font-weight:600;">Lihat Detail <span class="ms" style="font-size:15px;">chevron_right</span></div>
@@ -578,7 +586,7 @@
           <button type="button" class="popup-close-btn" id="pd-back-btn" style="opacity:1; display:flex; align-items:center; gap:4px; font-weight:700; color:#f97316;">
             <span class="ms">arrow_back</span> Kembali
           </button>
-          <div class="popup-title" style="font-size:14px; opacity:0.9; text-align:right; max-width:60%; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${c.nama_mata_kuliah}</div>
+          <div class="popup-title" style="font-size:14px; opacity:0.9; text-align:right; max-width:60%; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${Utils.escapeHtml(c.nama_mata_kuliah)}</div>
         </div>
 
         <div class="presensi-scroll-area">
@@ -590,14 +598,14 @@
                 <span class="ms">${p.presensi_status === 'hadir' ? 'check_circle' : 'cancel'}</span>
               </div>
               <div class="item-info">
-                <span class="item-title">Pertemuan ${reversedList.length - i} - ${p.jenis_perkuliahan || 'Perkuliahan'}</span>
+                <span class="item-title">Pertemuan ${reversedList.length - i} - ${Utils.escapeHtml(p.jenis_perkuliahan || 'Perkuliahan')}</span>
                 <div class="item-meta">
-                  <span><span class="ms" style="font-size:13px;">event</span> ${Utils.formatDateSimple(p.tanggal_mulai)}</span>
-                  ${p.presensi_date ? `<span><span class="ms" style="font-size:13px;">history</span> ${Utils.formatDate(p.presensi_date)}</span>` : ''}
+                  <span><span class="ms" style="font-size:13px;">event</span> ${Utils.escapeHtml(Utils.formatDateSimple(p.tanggal_mulai))}</span>
+                  ${p.presensi_date ? `<span><span class="ms" style="font-size:13px;">history</span> ${Utils.escapeHtml(Utils.formatDate(p.presensi_date))}</span>` : ''}
                 </div>
               </div>
               <div style="font-size:10px; font-weight:700; text-transform:uppercase; color:${p.presensi_status === 'hadir' ? '#4ade80' : '#f87171'}; flex-shrink:0;">
-                ${p.presensi_status || 'Tidak Hadir'}
+                ${Utils.escapeHtml(p.presensi_status || 'Tidak Hadir')}
               </div>
             </div>
           `
@@ -666,11 +674,15 @@
     },
   };
 
+  const JWT_RE = /^eyJ[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+$/;
+
   function cleanToken(token) {
-    if (token && token.includes('__q_strn|')) {
-      return token.split('__q_strn|')[1];
+    if (!token) return token;
+    let t = String(token);
+    if (t.includes('__q_strn|')) {
+      t = t.split('__q_strn|')[1];
     }
-    return token;
+    return t.replace(/^["']|["']$/g, '').trim();
   }
 
   let fetchMonitored = false;
@@ -743,7 +755,8 @@
     }
 
     if (possibleTokens.length > 0) {
-      return possibleTokens[0].value;
+      const jwtCandidate = possibleTokens.find((item) => JWT_RE.test(item.value));
+      return (jwtCandidate || possibleTokens[0]).value;
     }
 
     monitorNetworkRequests();
@@ -868,10 +881,4 @@
   UIRenderer.injectStyles();
   UIRenderer.addTrigger();
   monitorNetworkRequests();
-
-  window.addEventListener('storage', (e) => {
-    if (e.key && (e.key.toLowerCase().includes('token') || e.key.toLowerCase().includes('auth'))) {
-      fetchAllPresensiData();
-    }
-  });
 })();

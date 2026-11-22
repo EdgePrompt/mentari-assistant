@@ -1,5 +1,5 @@
 (function () {
-  const APP_VERSION = "1.3.0";
+  const APP_VERSION = "1.3.1";
   console.log("Mentari Assistant Token script loaded.");
 
   const FALLBACK_MODELS = [
@@ -13,7 +13,6 @@
       AUTH_TOKEN: "mentari_auth_token",
       USER_INFO: "mentari_user_info",
       COURSE_DATA: "mentari_course_data",
-      LAST_UPDATE: "mentari_last_update",
       LECTURER_NOTIFS: "mentari_lecturer_notifs",
       GEMINI_ENABLED: "gemini_enabled",
       AUTO_FINISH_QUIZ: "mentari_auto_finish_quiz",
@@ -184,12 +183,6 @@
     toast(msg) {
       window.MentariPanelUI?.toast(msg, "info");
     },
-    progressToast(msg) {
-      window.MentariPanelUI?.progressToast(msg);
-    },
-    closeProgressToast() {
-      window.MentariPanelUI?.closeProgressToast();
-    },
     successToast(msg) {
       window.MentariPanelUI?.toast(msg, "success");
     },
@@ -337,7 +330,7 @@
     async fetchGeminiModels(apiKey) {
       try {
         const r = await fetch(
-          `https://generativelanguage.googleapis.com/v1beta/models?key=${apiKey}`,
+          `https://generativelanguage.googleapis.com/v1beta/models?key=${encodeURIComponent(apiKey)}`,
         );
         if (!r.ok) return null;
         return r.json();
@@ -414,7 +407,6 @@
     setLoading(active) {
       window.MentariPanelUI?.setLoading(this.getHost(), active);
     },
-    updatePosition() {},
   };
 
   const ForumRenderer = {
@@ -2293,9 +2285,34 @@
       window.addEventListener("mentari-toggle-popup", () =>
         window.toggleTokenPopup(),
       );
-      window.addEventListener("resize", () => UIRenderer.updatePosition());
 
-      setInterval(() => Utils.applyTheme(), 1000);
+      let themeRaf = 0;
+      const scheduleThemeSync = () => {
+        if (
+          !UIRenderer.getHost()?.classList.contains("active") ||
+          Utils.getThemeMode() !== "auto"
+        ) {
+          return;
+        }
+        if (typeof requestAnimationFrame !== "function") {
+          Utils.applyTheme();
+          return;
+        }
+        if (themeRaf) return;
+        themeRaf = requestAnimationFrame(() => {
+          themeRaf = 0;
+          Utils.applyTheme();
+        });
+      };
+
+      if (document.body && typeof MutationObserver === "function") {
+        new MutationObserver(scheduleThemeSync).observe(document.body, {
+          childList: true,
+          subtree: true,
+          attributes: true,
+          attributeFilter: ["class"],
+        });
+      }
     },
     intercept() {
       const self = this;
@@ -2690,7 +2707,10 @@
       };
 
       activeEscapeHandler = (e) => {
-        if (e.key === "Escape") {
+        if (
+          e.key === "Escape" &&
+          !document.getElementById("gemini_apiKeyOverlay")
+        ) {
           closePopup(p);
         }
       };

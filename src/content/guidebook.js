@@ -12,13 +12,13 @@
 
   function render(containerEl, options = {}) {
     if (!containerEl) return;
-    const { version = "1.3.0", onBack } = options || {};
+    const { version = "1.3.1", onBack } = options || {};
     const ico =
       typeof window !== "undefined" && typeof window.MentariPanelUI?.icon === "function"
         ? window.MentariPanelUI.icon
         : () => "";
 
-    const safeVersion = escapeHtml(version || "1.3.0");
+    const safeVersion = escapeHtml(version || "1.3.1");
 
     const sections = [
       {

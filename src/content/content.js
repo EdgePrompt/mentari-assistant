@@ -215,16 +215,34 @@
     console.log('Mentari Toggle injected to header.');
   }
 
-  const observer = new MutationObserver(() => injectHeaderToggle());
-  if (document.body) {
-    observer.observe(document.body, { childList: true, subtree: true });
-  } else {
-    document.addEventListener('DOMContentLoaded', () => {
-      if (document.body) observer.observe(document.body, { childList: true, subtree: true });
+  let rafId = 0;
+  const scheduleInject = () => {
+    if (typeof requestAnimationFrame !== 'function') {
+      injectHeaderToggle();
+      return;
+    }
+    if (rafId) return;
+    rafId = requestAnimationFrame(() => {
+      rafId = 0;
+      injectHeaderToggle();
     });
-  }
+  };
 
-  setInterval(injectHeaderToggle, 1000);
+  const startObserver = () => {
+    injectHeaderToggle();
+    if (document.body) {
+      new MutationObserver(scheduleInject).observe(document.body, {
+        childList: true,
+        subtree: true,
+      });
+    }
+  };
+
+  if (document.body) {
+    startObserver();
+  } else {
+    document.addEventListener('DOMContentLoaded', startObserver);
+  }
 
   setTimeout(() => {
     ensureScriptsLoaded(null);

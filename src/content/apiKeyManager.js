@@ -57,13 +57,9 @@
       #gemini_apiKeyInput:focus {
         border-color: #f97316 !important;
       }
-      .ms-spin {
-        font-family: 'Material Symbols Rounded';
-        font-size: 16px;
-        font-style: normal;
+      .mentari-api-spin {
         display: inline-block;
-        line-height: 1;
-        animation: mentari-api-spin 1s linear infinite;
+        animation: mentari-api-spin 0.9s linear infinite;
       }
       @keyframes mentari-api-spin {
         from { transform: rotate(0deg); }
@@ -106,6 +102,15 @@
     }
   }
 
+  const ICON_KEY =
+    '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"/></svg>';
+  const ICON_EYE =
+    '<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>';
+  const ICON_EYE_OFF =
+    '<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/><path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/><line x1="1" y1="1" x2="23" y2="23"/></svg>';
+  const ICON_SPIN =
+    '<svg class="mentari-api-spin" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12a9 9 0 1 1-9-9"/></svg>';
+
   function showApiKeyPopup() {
     if (document.getElementById('gemini_apiKeyPopup')) return;
     injectStyles();
@@ -128,7 +133,7 @@
       <div id="gemini_apiKeyPopup" class="gemini_api-key-popup">
         <div class="gemini_popup-header">
           <div style="font-weight:700; color:#f3f4f6; display:flex; align-items:center; gap:8px; font-size:14px;">
-            <span class="ms" style="color:#f97316;">vpn_key</span> Gemini API Key
+            <span style="color:#f97316; display:inline-flex;">${ICON_KEY}</span> Gemini API Key
           </div>
         </div>
         <div class="gemini_popup-content">
@@ -139,14 +144,14 @@
           <div style="position:relative; margin-bottom:15px;">
             <input type="password" id="gemini_apiKeyInput" value="${currentKey.replace(/"/g, '&quot;')}" placeholder="Masukkan AIza...">
             <button type="button" id="gemini_toggleVis" style="position:absolute; right:10px; top:50%; transform:translateY(-50%); background:none; border:none; color:#9ca3af; cursor:pointer; display:flex; padding:2px;" title="Tampilkan / Sembunyikan API key">
-              <span class="ms" id="gemini_visIcon" style="font-size:18px;">visibility</span>
+              <span id="gemini_visIcon" style="display:inline-flex;">${ICON_EYE}</span>
             </button>
           </div>
           <div id="gemini_validationMessage" style="display:none; padding:10px 12px; border-radius:8px; font-size:12px; margin-bottom:15px; border:1px solid transparent; line-height:1.4;"></div>
           <div style="display:flex; justify-content:flex-end; gap:8px;">
             <button type="button" id="gemini_closePopup" style="background:#1b1d22; color:#9ca3af; border:1px solid #2a2d35; padding:8px 16px; border-radius:8px; cursor:pointer; font-size:12px; font-weight:600;">Batal</button>
             <button type="button" id="gemini_saveApiKeyButton" style="background:linear-gradient(135deg, #f97316, #ea580c); color:#ffffff; border:none; padding:8px 16px; border-radius:8px; cursor:pointer; font-size:12px; font-weight:700; display:flex; align-items:center; gap:6px; box-shadow:0 4px 12px rgba(249,115,22,0.28);">
-              <span id="gemini_btnText">Simpan</span>
+              <span id="gemini_btnText" style="display:inline-flex; align-items:center; gap:6px;">Simpan</span>
             </button>
           </div>
         </div>
@@ -163,17 +168,26 @@
     const visIcon = document.getElementById('gemini_visIcon');
     const btnText = document.getElementById('gemini_btnText');
 
+    const onEsc = (e) => {
+      if (e.key === 'Escape') closeOverlay();
+    };
+    const closeOverlay = () => {
+      document.removeEventListener('keydown', onEsc);
+      document.getElementById('gemini_apiKeyOverlay')?.remove();
+    };
+    document.addEventListener('keydown', onEsc);
+
     toggleVis.onclick = (e) => {
       e.preventDefault();
       const isPass = input.type === 'password';
       input.type = isPass ? 'text' : 'password';
-      visIcon.textContent = isPass ? 'visibility_off' : 'visibility';
+      visIcon.innerHTML = isPass ? ICON_EYE_OFF : ICON_EYE;
     };
 
-    closeBtn.onclick = () => overlay.remove();
+    closeBtn.onclick = closeOverlay;
 
     overlay.onclick = (e) => {
-      if (e.target === overlay) overlay.remove();
+      if (e.target === overlay) closeOverlay();
     };
 
     saveBtn.onclick = async () => {
@@ -190,7 +204,7 @@
 
       saveBtn.disabled = true;
       saveBtn.style.opacity = '0.7';
-      btnText.innerHTML = '<span class="ms-spin">progress_activity</span> Memverifikasi...';
+      btnText.innerHTML = `${ICON_SPIN} Memverifikasi...`;
 
       const verify = await verifyApiKeyOnServer(key);
       if (verify.valid) {
@@ -203,7 +217,7 @@
         localStorage.setItem('geminiApiKey', btoa(key));
 
         setTimeout(() => {
-          document.getElementById('gemini_apiKeyOverlay')?.remove();
+          closeOverlay();
           if (typeof createChatbotInterface === 'function') createChatbotInterface(key);
           window.dispatchEvent(new CustomEvent('gemini-api-key-updated', { detail: { key } }));
         }, 1200);

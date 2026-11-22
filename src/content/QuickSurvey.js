@@ -50,10 +50,18 @@
       }
     }
 
+    let steps = 0;
+    const MAX_STEPS = 40;
+
     function findAndClickButtons() {
+      if (!window.location.href.startsWith('https://my.unpam.ac.id/data-akademik/khs') || steps >= MAX_STEPS) {
+        return;
+      }
+      steps++;
       clickRadios(mode);
 
       setTimeout(() => {
+        if (!window.location.href.startsWith('https://my.unpam.ac.id/data-akademik/khs')) return;
         const buttons = document.querySelectorAll('button.q-btn.bg-blue-6.text-white');
         let foundNextButton = false;
 
@@ -82,7 +90,7 @@
   }
 
   const SurveyConfig = {
-    APP_VERSION: '1.3.0',
+    APP_VERSION: '1.3.1',
     STYLES: `
       #quick-survey-popup-root {
         position: fixed;
@@ -573,18 +581,6 @@
       observer.observe(document.body, { childList: true, subtree: true });
     }
     window.addEventListener('popstate', checkUrlChange);
-
-    const originalPushState = history.pushState;
-    const originalReplaceState = history.replaceState;
-    history.pushState = function (...args) {
-      originalPushState.apply(this, args);
-      checkUrlChange();
-    };
-    history.replaceState = function (...args) {
-      originalReplaceState.apply(this, args);
-      checkUrlChange();
-    };
-
     checkUrlAndInitialize();
   }
 
